@@ -8,7 +8,7 @@
 <style>
 :root{--bg:#11161e;--panel:#19212c;--panel2:#202b38;--line:#314156;--text:#edf3f9;--muted:#96a8ba;--blue:#6fa8dc;--blue2:#315f88;--danger:#d98989}
 *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font:15px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-.app{max-width:620px;margin:auto;padding:22px 16px 60px}.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.app{max-width:620px;margin:auto;padding:22px 16px 60px}.top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px}.top-tools{display:flex;align-items:center;gap:5px;color:var(--muted);font-size:11px}.mini-refresh{border:0;background:transparent;color:var(--muted);font-size:18px;line-height:1;padding:4px 5px;cursor:pointer}.search-wrap{margin:0 0 14px}.search{width:100%;border:1px solid var(--line);background:#111821;color:var(--text);border-radius:13px;padding:12px 14px;font-size:15px}.search::placeholder{color:#718397}.star{color:#f1c75b;font-size:17px;margin-right:6px;vertical-align:-1px}
 h1{font-size:26px;margin:0}.sub{color:var(--muted);font-size:13px;margin-top:4px}
 button,input{font:inherit}.btn{border:1px solid var(--line);background:var(--panel2);color:var(--text);border-radius:12px;padding:10px 13px}
 .recipe{background:var(--panel);border:1px solid #273548;border-radius:16px;padding:15px;margin:10px 0;display:flex;gap:12px;align-items:center}
@@ -21,14 +21,15 @@ input[type=number],input[type=text]{width:100%;border:1px solid var(--line);back
 .segment{display:flex;border:1px solid var(--line);border-radius:12px;overflow:hidden}.segment button{flex:1;border:0;border-right:1px solid var(--line);padding:10px 6px;background:#131b25;color:var(--muted)}.segment button:last-child{border-right:0}.segment button.active{background:var(--blue2);color:white}
 .range-label{display:flex;justify-content:space-between;color:var(--muted);font-size:12px} input[type=range]{width:100%;accent-color:var(--blue)}
 .step{display:grid;grid-template-columns:64px 1fr;gap:12px;padding:12px 0;border-bottom:1px solid #283545}.step:last-child{border-bottom:0}.time{color:var(--blue);font-weight:700}.target{font-size:21px;font-weight:750}.note{color:var(--muted);font-size:13px;margin-top:3px;line-height:1.4}
-.modal{position:fixed;inset:0;background:#080b10cc;display:flex;align-items:center;justify-content:center;padding:20px}.dialog{width:min(420px,100%);background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px}.dialog h3{margin:0 0 12px}.actions{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}.app-footer{margin-top:28px;padding:16px 4px;text-align:center;color:var(--muted);font-size:12px}.refresh{margin-top:9px}
+.modal{position:fixed;inset:0;background:#080b10cc;display:flex;align-items:center;justify-content:center;padding:20px}.dialog{width:min(420px,100%);background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px}.dialog h3{margin:0 0 12px}.actions{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}.app-footer{margin-top:28px;padding:16px 4px;text-align:center;color:var(--muted);font-size:12px}
 </style>
 </head>
 <body><main class="app">
 <section id="library">
- <div class="top"><div><h1>My Coffee Recipes</h1><div class="sub">Your brew library</div></div></div>
+ <div class="top"><div><h1>My Coffee Recipes</h1><div class="sub">Your brew library</div></div><div class="top-tools"><span>v5.6</span><button class="mini-refresh" onclick="forceRefresh()" aria-label="Refresh / check for update" title="Refresh / check for update">↻</button></div></div>
+ <div class="search-wrap"><input id="recipeSearch" class="search" type="search" placeholder="Search recipes…" autocomplete="off" autocapitalize="off"></div>
  <div id="recipeList"></div>
- <div class="hint">Recipes start alphabetically. Use ••• to move favourites or rename a recipe.</div>
+ <div class="hint">★ Star favourites to keep them at the top. Use ••• to reorder or rename.</div>
 </section>
 
 <section id="brew" class="hidden">
@@ -41,16 +42,9 @@ input[type=number],input[type=text]{width:100%;border:1px solid var(--line);back
    <div><div class="label">Coffee (g)</div><input id="coffee" type="number" step=".1"></div>
    <div><div class="label">Water (g)</div><input id="water" type="number" step="1"></div>
   </div>
-  <div style="margin-top:10px"><div class="label">Water : coffee ratio</div><input id="ratio" type="number" step=".01"></div>
+  <div style="margin-top:14px"><div class="label">Water : coffee ratio</div><div id="ratioLabel" style="font-size:30px;font-weight:800;text-align:center;color:var(--blue);margin:2px 0 8px">1:16.67</div><input id="ratio" type="range" min="12" max="20" step="0.01" value="16.67"><div class="range-label"><span>1:12</span><span>1:20</span></div><div style="text-align:center;margin-top:10px"><button class="btn" onclick="resetRatio()">Reset to recipe ratio</button></div></div>
  </div>
  <div id="icedControls" class="hidden">
-  <div class="card">
-   <div class="label">Water : coffee ratio</div>
-   <div id="icedRatioLabel" style="font-size:30px;font-weight:800;text-align:center;color:var(--blue);margin:2px 0 8px">1:13.33</div>
-   <input id="icedRatio" type="range" min="12" max="18" step="0.01" value="13.33">
-   <div class="range-label"><span>1:12</span><span>1:18</span></div>
-   <div style="text-align:center;margin-top:10px"><button class="btn" onclick="resetIcedRatio()">Reset to recipe ratio</button></div>
-  </div>
   <div class="card">
    <div class="label">Ice used (g) · default input</div>
    <input id="ice" type="number" step="1" value="170">
@@ -69,16 +63,14 @@ input[type=number],input[type=text]{width:100%;border:1px solid var(--line);back
  </div>
  <div class="card"><div class="label">Cumulative water targets</div><div id="steps"></div></div>
 </section>
-<div class="app-footer">
- <div>Coffee Brew · v5.5</div>
- <button class="btn refresh" onclick="forceRefresh()">↻ Check for update</button>
-</div>
+<div class="app-footer">Coffee Brew</div>
 </main>
 
 <div id="actionModal" class="modal hidden" onclick="if(event.target===this)closeActions()"><div class="dialog">
 <h3 id="actionTitle">Recipe</h3>
 <div style="display:grid;gap:8px">
-<button class="btn" onclick="moveRecipe('top')">★ Move to top</button>
+<button id="starAction" class="btn" onclick="toggleStar()">★ Star recipe</button>
+<button class="btn" onclick="moveRecipe('top')">↑ Move to top</button>
 <button class="btn" onclick="moveRecipe('up')">↑ Move up</button>
 <button class="btn" onclick="moveRecipe('down')">↓ Move down</button>
 <button class="btn" onclick="startRename()">✎ Rename</button>
@@ -130,6 +122,7 @@ if(!customOrder && priorOrder){
  const tops=["hoffmanniced","hoffmann"];
  customOrder=[...tops,...priorOrder.filter(id=>!tops.includes(id))];
 }
+let starred=JSON.parse(localStorage.getItem("coffeeStarredV1")||"null") || ["hoffmanniced","hoffmann"];
 let current=null, mode="coffee", bodyPours=3, actionId=null, renameId=null;
 const $=id=>document.getElementById(id);
 
@@ -143,28 +136,38 @@ function orderIds(){
  let missing=recipes.filter(r=>!ids.includes(r.id)).sort((a,b)=>a.name.localeCompare(b.name)).map(r=>r.id);
  return [...ids,...missing];
 }
-function ordered(){return orderIds().map(id=>recipes.find(r=>r.id===id)).filter(Boolean)}
+function ordered(){let base=orderIds().map(id=>recipes.find(r=>r.id===id)).filter(Boolean);return [...base.filter(r=>starred.includes(r.id)),...base.filter(r=>!starred.includes(r.id))]}
 function save(){
  localStorage.setItem("coffeeRecipesV9",JSON.stringify(recipes));
  if(customOrder) localStorage.setItem("coffeeOrderV8",JSON.stringify(customOrder));
+ localStorage.setItem("coffeeStarredV1",JSON.stringify(starred));
 }
+function normalizeSearch(s){return String(s).toLowerCase().replace(/[‐‑‒–—−-]+/g," ").replace(/[^a-z0-9]+/g," ").trim()}
 function renderLibrary(){
  $("recipeList").innerHTML="";
- ordered().forEach(r=>{
+ const q=normalizeSearch($("recipeSearch")?.value||"");
+ const list=ordered().filter(r=>!q || normalizeSearch(r.name).includes(q));
+ list.forEach(r=>{
   let el=document.createElement("div");el.className="recipe";el.dataset.id=r.id;
-  el.innerHTML=`<div class="recipe-main"><div class="recipe-name">${esc(r.name)}</div><div class="meta">${esc(r.brewer)} · 1:${fmt(r.ratio)}</div></div><button class="icon" aria-label="Recipe options">•••</button>`;
+  el.innerHTML=`<div class="recipe-main"><div class="recipe-name">${starred.includes(r.id)?'<span class="star" aria-label="Starred">★</span>':''}${esc(r.name)}</div><div class="meta">${esc(r.brewer)} · 1:${fmt(r.ratio)}</div></div><button class="icon" aria-label="Recipe options">•••</button>`;
   el.querySelector(".recipe-main").onclick=()=>openRecipe(r.id);
   el.querySelector(".icon").onclick=()=>openActions(r.id);
   $("recipeList").appendChild(el);
  });
+ if(!list.length) $("recipeList").innerHTML='<div class="hint" style="text-align:center;padding:22px 0">No matching recipes</div>';
 }
 function openActions(id){
  actionId=id;
  let r=recipes.find(x=>x.id===id);
  $("actionTitle").textContent=r.name;
+ $("starAction").textContent=starred.includes(id)?"☆ Unstar recipe":"★ Star recipe";
  $("actionModal").classList.remove("hidden");
 }
 function closeActions(){$("actionModal").classList.add("hidden")}
+function toggleStar(){
+ if(starred.includes(actionId)) starred=starred.filter(id=>id!==actionId); else starred.push(actionId);
+ save();closeActions();renderLibrary();
+}
 function moveRecipe(where){
  let ids=orderIds(), i=ids.indexOf(actionId);
  if(i<0)return;
@@ -186,15 +189,13 @@ function openRecipe(id){
  mode=current.type==="iced" ? "ice" : "coffee";
  $("library").classList.add("hidden");$("brew").classList.remove("hidden");
  $("brewName").textContent=current.name;$("brewMeta").textContent=current.brewer+" · Default 1:"+fmt(current.ratio);
- $("coffee").value=current.coffee;$("water").value=current.water;$("ratio").value=current.ratio;
+ $("coffee").value=current.coffee;$("water").value=current.water;$("ratio").value=current.ratio;$("ratioLabel").textContent="1:"+(+current.ratio).toFixed(2);
  $("kasuyaControls").classList.toggle("hidden",current.type!=="kasuya");
  $("icedControls").classList.toggle("hidden",current.type!=="iced");
  if(current.type==="iced"){
    $("ice").value=current.ice;
    $("icePct").value=current.icePct;
    $("icePctLabel").textContent=(+current.icePct).toFixed(2)+"%";
-   $("icedRatio").value=current.ratio;
-   $("icedRatioLabel").textContent="1:"+(+current.ratio).toFixed(2);
  }
  $("flavour").value=0;
  document.querySelectorAll("[data-pours]").forEach(b=>b.classList.toggle("active",+b.dataset.pours===3));
@@ -216,9 +217,8 @@ function updateMode(){
 function recalc(source){
  let ratio=+$("ratio").value||current.ratio;
  if(current.type==="iced"){
-   ratio=+$("icedRatio").value||current.ratio;
-   $("ratio").value=ratio.toFixed(2);
-   $("icedRatioLabel").textContent="1:"+ratio.toFixed(2);
+   ratio=+$("ratio").value||current.ratio;
+   $("ratioLabel").textContent="1:"+ratio.toFixed(2);
    let pct=(+$("icePct").value||34)/100;
    let ice=+$("ice").value||0, total=+$("water").value||0, coffee=+$("coffee").value||0;
    if(source==="coffee"){
@@ -241,9 +241,9 @@ function recalc(source){
  else $("coffee").value=round((+$("water").value||0)/ratio,1);
  renderSteps();
 }
-function resetIcedRatio(){
- $("icedRatio").value=current.ratio;
- $("icedRatioLabel").textContent="1:"+(+current.ratio).toFixed(2);
+function resetRatio(){
+ $("ratio").value=current.ratio;
+ $("ratioLabel").textContent="1:"+(+current.ratio).toFixed(2);
  recalc("ratio");
 }
 function resetIcePct(){
@@ -272,9 +272,8 @@ function step(t,v,n){return `<div class="step"><div class="time">${t}</div><div>
 function time45(i){let sec=i*45,m=Math.floor(sec/60),s=String(sec%60).padStart(2,"0");return m+":"+s}
 $("coffee").addEventListener("input",()=>recalc("coffee"));
 $("water").addEventListener("input",()=>recalc("water"));
-$("ratio").addEventListener("input",()=>{ if(current.type!=="iced") recalc("ratio"); });
+$("ratio").addEventListener("input",()=>{$("ratioLabel").textContent="1:"+(+$("ratio").value).toFixed(2);recalc("ratio")});
 $("ice").addEventListener("input",()=>recalc("ice"));
-$("icedRatio").addEventListener("input",()=>recalc("ratio"));
 $("icePct").addEventListener("input",()=>{$("icePctLabel").textContent=(+$("icePct").value).toFixed(2)+"%";recalc("ice")});
 $("flavour").addEventListener("input",renderSteps);
 document.querySelectorAll("[data-pours]").forEach(b=>b.onclick=()=>{bodyPours=+b.dataset.pours;document.querySelectorAll("[data-pours]").forEach(x=>x.classList.toggle("active",x===b));renderSteps()});
@@ -287,5 +286,6 @@ function forceRefresh(){
 }
 function round(n,d){let p=10**d;return Math.round(n*p)/p} function fmt(n){return (+n).toFixed(2).replace(/\.?0+$/,"")}
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+$("recipeSearch").addEventListener("input",renderLibrary);
 renderLibrary();
 </script></body></html>
