@@ -12,8 +12,8 @@
 h1{font-size:26px;margin:0}.sub{color:var(--muted);font-size:13px;margin-top:4px}
 button,input{font:inherit}.btn{border:1px solid var(--line);background:var(--panel2);color:var(--text);border-radius:12px;padding:10px 13px}
 .recipe{background:var(--panel);border:1px solid #273548;border-radius:16px;padding:15px;margin:10px 0;display:flex;gap:12px;align-items:center}
-.drag{color:#71869b;font-size:20px;cursor:grab;user-select:none}.recipe-main{flex:1;cursor:pointer}.recipe-name{font-weight:700;font-size:16px}.meta{color:var(--muted);font-size:13px;margin-top:5px}
-.icon{border:0;background:transparent;color:var(--muted);font-size:20px;padding:8px}.hint{color:var(--muted);font-size:12px;line-height:1.45;margin:14px 3px}
+.recipe-main{flex:1;cursor:pointer}.recipe-name{font-weight:700;font-size:16px}.meta{color:var(--muted);font-size:13px;margin-top:5px}
+.icon{border:0;background:transparent;color:var(--muted);font-size:20px;padding:12px;min-width:44px;min-height:44px}.hint{color:var(--muted);font-size:12px;line-height:1.45;margin:14px 3px}
 .hidden{display:none!important}.back{border:0;background:none;color:var(--blue);padding:0 0 14px;font-size:15px}
 .card{background:var(--panel);border:1px solid #273548;border-radius:17px;padding:16px;margin:12px 0}
 .card h2{font-size:20px;margin:0 0 4px}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.label{color:var(--muted);font-size:12px;margin-bottom:6px}
@@ -28,7 +28,7 @@ input[type=number],input[type=text]{width:100%;border:1px solid var(--line);back
 <section id="library">
  <div class="top"><div><h1>My Coffee Recipes</h1><div class="sub">Your brew library</div></div></div>
  <div id="recipeList"></div>
- <div class="hint">Recipes are alphabetical by default. Drag a recipe upward to keep a favourite at the top. Tap ••• to rename it.</div>
+ <div class="hint">Recipes start alphabetically. Use ••• to move favourites or rename a recipe.</div>
 </section>
 
 <section id="brew" class="hidden">
@@ -43,6 +43,26 @@ input[type=number],input[type=text]{width:100%;border:1px solid var(--line);back
   </div>
   <div style="margin-top:10px"><div class="label">Water : coffee ratio</div><input id="ratio" type="number" step=".01"></div>
  </div>
+ <div id="icedControls" class="hidden">
+  <div class="card">
+   <div class="label">Water : coffee ratio</div>
+   <div id="icedRatioLabel" style="font-size:30px;font-weight:800;text-align:center;color:var(--blue);margin:2px 0 8px">1:13.33</div>
+   <input id="icedRatio" type="range" min="12" max="18" step="0.01" value="13.33">
+   <div class="range-label"><span>1:12</span><span>1:18</span></div>
+   <div style="text-align:center;margin-top:10px"><button class="btn" onclick="resetIcedRatio()">Reset to recipe ratio</button></div>
+  </div>
+  <div class="card">
+   <div class="label">Ice used (g) · default input</div>
+   <input id="ice" type="number" step="1" value="170">
+   <div style="margin-top:12px">
+   <div class="label">Ice as % of total brew water</div>
+   <div id="icePctLabel" style="font-size:30px;font-weight:800;text-align:center;color:var(--blue);margin:2px 0 8px">34.00%</div>
+   <input id="icePct" type="range" min="20" max="50" step="0.01" value="34">
+   <div class="range-label"><span>20%</span><span>50%</span></div>
+   <div style="text-align:center;margin-top:10px"><button class="btn" onclick="resetIcePct()">Reset to 34.00%</button></div>
+  </div>
+  </div>
+ </div>
  <div id="kasuyaControls" class="hidden">
   <div class="card"><div class="label">First 40% · Flavour balance</div><input id="flavour" type="range" min="-10" max="10" step="1" value="0"><div class="range-label"><span>Sweeter</span><span>Balanced</span><span>Brighter</span></div></div>
   <div class="card"><div class="label">Remaining 60% · Body</div><div class="segment"><button data-pours="2">2 pours</button><button data-pours="3" class="active">3 pours</button><button data-pours="4">4 pours</button></div><div class="range-label" style="margin-top:7px"><span>Lighter</span><span>Classic</span><span>Stronger</span></div></div>
@@ -50,6 +70,16 @@ input[type=number],input[type=text]{width:100%;border:1px solid var(--line);back
  <div class="card"><div class="label">Cumulative water targets</div><div id="steps"></div></div>
 </section>
 </main>
+
+<div id="actionModal" class="modal hidden" onclick="if(event.target===this)closeActions()"><div class="dialog">
+<h3 id="actionTitle">Recipe</h3>
+<div style="display:grid;gap:8px">
+<button class="btn" onclick="moveRecipe('top')">★ Move to top</button>
+<button class="btn" onclick="moveRecipe('up')">↑ Move up</button>
+<button class="btn" onclick="moveRecipe('down')">↓ Move down</button>
+<button class="btn" onclick="startRename()">✎ Rename</button>
+<button class="btn" onclick="closeActions()">Cancel</button>
+</div></div></div>
 
 <div id="renameModal" class="modal hidden"><div class="dialog"><h3>Rename recipe</h3><input id="renameInput" type="text"><div class="actions"><button class="btn" onclick="closeRename()">Cancel</button><button class="btn" onclick="saveRename()">Save</button></div></div></div>
 
@@ -61,59 +91,164 @@ const defaults=[
  {id:"hoffmann",name:"James Hoffmann · 1-Cup V60",brewer:"V60",coffee:15,water:250,ratio:16.67,type:"fixed",
   steps:[{t:"0:00",f:.2,n:"Bloom, then gently swirl"},{t:"0:45",f:.4,n:"Pour to target"},{t:"1:10",f:.6,n:"Pour to target"},{t:"1:30",f:.8,n:"Pour to target"},{t:"1:50",f:1,n:"Final pour"},{t:"2:00",f:1,n:"Gentle swirl and draw down"}],
   footer:"Fine-medium grind · Hot/boiling water · Aim for ~3:00 total"},
- {id:"kasuya",name:"Tetsu Kasuya · 4:6 Method",brewer:"V60",coffee:20,water:300,ratio:15,type:"kasuya",footer:"First 40% controls flavour; remaining 60% controls body"}
+ {id:"hoffmanniced",name:"James Hoffmann · Iced Immersion",brewer:"Hario Switch / Clever Dripper",coffee:37.5,water:500,ratio:13.33,type:"iced",
+  icePct:34, hotWater:330, ice:170,
+  footer:"Water first, then coffee · Stir thoroughly · Steep 5:00 (about 4:00 for darker roasts) · Open valve and draw down onto ice · Swirl to melt/chill, then serve over fresh ice"},
+ {id:"kasuya",name:"Tetsu Kasuya · 4:6 Method",brewer:"V60",coffee:20,water:300,ratio:15,type:"kasuya",footer:"First 40% controls flavour; remaining 60% controls body"},
+ {id:"kasuya10",name:"Tetsu Kasuya · 10-Pour V60",brewer:"V60 / Hario Neo",coffee:20,water:300,ratio:15,type:"fixed",
+  steps:[
+   {t:"0:00",f:.1,n:"Bloom · pour 30g"},
+   {t:"0:30",f:.2,n:"Pour 2 · add 30g"},
+   {t:"0:45",f:.3,n:"Pour 3 · add 30g"},
+   {t:"1:00",f:.4,n:"Pour 4 · add 30g"},
+   {t:"1:15",f:.5,n:"Pour 5 · add 30g"},
+   {t:"1:30",f:.6,n:"Pour 6 · add 30g"},
+   {t:"1:45",f:.7,n:"Pour 7 · add 30g"},
+   {t:"2:00",f:.8,n:"Pour 8 · add 30g"},
+   {t:"2:15",f:.9,n:"Pour 9 · add 30g"},
+   {t:"2:30",f:1,n:"Final pour · add 30g"}
+  ],
+  footer:"95–96°C · Super-coarse grind (French press range; ~40–45 clicks Comandante C40) · Draw down from 2:45, usually finishing around 3:00–3:30"}
 ];
-let recipes=JSON.parse(localStorage.getItem("coffeeRecipesV4")||"null")||defaults;
-let pinned=JSON.parse(localStorage.getItem("coffeePinnedV4")||"[]");
-let current=null, mode="coffee", bodyPours=3, renameId=null;
+let savedV6=JSON.parse(localStorage.getItem("coffeeRecipesV7")||"null");
+let oldV5=JSON.parse(localStorage.getItem("coffeeRecipesV6")||localStorage.getItem("coffeeRecipesV5")||"null");
+let recipes=savedV6 || (oldV5 ? [...oldV5, ...defaults.filter(d=>!oldV5.some(r=>r.id===d.id))] : defaults);
+let priorOrder=JSON.parse(localStorage.getItem("coffeeOrderV7")||"null") || JSON.parse(localStorage.getItem("coffeeOrderV6")||localStorage.getItem("coffeeOrderV5")||"null");
+let customOrder=JSON.parse(localStorage.getItem("coffeeOrderV8")||"null");
+if(!customOrder && priorOrder){
+ const tops=["hoffmanniced","hoffmann"];
+ customOrder=[...tops,...priorOrder.filter(id=>!tops.includes(id))];
+}
+let current=null, mode="coffee", bodyPours=3, actionId=null, renameId=null;
 const $=id=>document.getElementById(id);
-function save(){localStorage.setItem("coffeeRecipesV4",JSON.stringify(recipes));localStorage.setItem("coffeePinnedV4",JSON.stringify(pinned))}
-function ordered(){
- let pin=pinned.map(id=>recipes.find(r=>r.id===id)).filter(Boolean);
- let rest=recipes.filter(r=>!pinned.includes(r.id)).sort((a,b)=>a.name.localeCompare(b.name));
- return [...pin,...rest];
+
+function defaultOrder(){
+ const pinned=["hoffmanniced","hoffmann"];
+ const rest=[...recipes].filter(r=>!pinned.includes(r.id)).sort((a,b)=>a.name.localeCompare(b.name)).map(r=>r.id);
+ return [...pinned.filter(id=>recipes.some(r=>r.id===id)),...rest];
+}
+function orderIds(){
+ let ids=customOrder ? customOrder.filter(id=>recipes.some(r=>r.id===id)) : defaultOrder();
+ let missing=recipes.filter(r=>!ids.includes(r.id)).sort((a,b)=>a.name.localeCompare(b.name)).map(r=>r.id);
+ return [...ids,...missing];
+}
+function ordered(){return orderIds().map(id=>recipes.find(r=>r.id===id)).filter(Boolean)}
+function save(){
+ localStorage.setItem("coffeeRecipesV7",JSON.stringify(recipes));
+ if(customOrder) localStorage.setItem("coffeeOrderV8",JSON.stringify(customOrder));
 }
 function renderLibrary(){
  $("recipeList").innerHTML="";
  ordered().forEach(r=>{
-  let el=document.createElement("div");el.className="recipe";el.draggable=true;el.dataset.id=r.id;
-  el.innerHTML=`<div class="drag">≡</div><div class="recipe-main"><div class="recipe-name">${esc(r.name)}</div><div class="meta">${esc(r.brewer)} · 1:${fmt(r.ratio)}</div></div><button class="icon">•••</button>`;
+  let el=document.createElement("div");el.className="recipe";el.dataset.id=r.id;
+  el.innerHTML=`<div class="recipe-main"><div class="recipe-name">${esc(r.name)}</div><div class="meta">${esc(r.brewer)} · 1:${fmt(r.ratio)}</div></div><button class="icon" aria-label="Recipe options">•••</button>`;
   el.querySelector(".recipe-main").onclick=()=>openRecipe(r.id);
-  el.querySelector(".icon").onclick=()=>openRename(r.id);
-  el.ondragstart=e=>e.dataTransfer.setData("text/plain",r.id);
-  el.ondragover=e=>e.preventDefault();
-  el.ondrop=e=>{e.preventDefault();let moved=e.dataTransfer.getData("text/plain"), target=r.id;if(moved===target)return;
-    let arr=ordered().map(x=>x.id);arr.splice(arr.indexOf(moved),1);arr.splice(arr.indexOf(target),0,moved);
-    let firstUnpinned=arr.findIndex(id=>!pinned.includes(id)&&id!==moved); 
-    if(firstUnpinned<0) firstUnpinned=arr.length;
-    let targetIndex=arr.indexOf(moved);
-    if(targetIndex<=firstUnpinned){pinned=arr.slice(0,targetIndex+1)} else {pinned=pinned.filter(id=>id!==moved)}
-    save();renderLibrary();
-  };
+  el.querySelector(".icon").onclick=()=>openActions(r.id);
   $("recipeList").appendChild(el);
  });
 }
+function openActions(id){
+ actionId=id;
+ let r=recipes.find(x=>x.id===id);
+ $("actionTitle").textContent=r.name;
+ $("actionModal").classList.remove("hidden");
+}
+function closeActions(){$("actionModal").classList.add("hidden")}
+function moveRecipe(where){
+ let ids=orderIds(), i=ids.indexOf(actionId);
+ if(i<0)return;
+ if(where==="top" && i>0){ids.splice(i,1);ids.unshift(actionId)}
+ if(where==="up" && i>0){[ids[i-1],ids[i]]=[ids[i],ids[i-1]]}
+ if(where==="down" && i<ids.length-1){[ids[i+1],ids[i]]=[ids[i],ids[i+1]]}
+ customOrder=ids;save();closeActions();renderLibrary();
+}
+function startRename(){
+ renameId=actionId;
+ let r=recipes.find(x=>x.id===renameId);
+ closeActions();
+ $("renameInput").value=r.name;
+ $("renameModal").classList.remove("hidden");
+ $("renameInput").focus();
+}
 function openRecipe(id){
- current=recipes.find(r=>r.id===id);mode="coffee";bodyPours=3;
+ current=recipes.find(r=>r.id===id);bodyPours=3;
+ mode=current.type==="iced" ? "ice" : "coffee";
  $("library").classList.add("hidden");$("brew").classList.remove("hidden");
  $("brewName").textContent=current.name;$("brewMeta").textContent=current.brewer+" · Default 1:"+fmt(current.ratio);
  $("coffee").value=current.coffee;$("water").value=current.water;$("ratio").value=current.ratio;
- $("kasuyaControls").classList.toggle("hidden",current.type!=="kasuya");$("flavour").value=0;
+ $("kasuyaControls").classList.toggle("hidden",current.type!=="kasuya");
+ $("icedControls").classList.toggle("hidden",current.type!=="iced");
+ if(current.type==="iced"){
+   $("ice").value=current.ice;
+   $("icePct").value=current.icePct;
+   $("icePctLabel").textContent=(+current.icePct).toFixed(2)+"%";
+   $("icedRatio").value=current.ratio;
+   $("icedRatioLabel").textContent="1:"+(+current.ratio).toFixed(2);
+ }
+ $("flavour").value=0;
  document.querySelectorAll("[data-pours]").forEach(b=>b.classList.toggle("active",+b.dataset.pours===3));
  updateMode();renderSteps();
 }
 function showLibrary(){$("brew").classList.add("hidden");$("library").classList.remove("hidden");renderLibrary()}
 function setMode(m){mode=m;updateMode();recalc()}
-function updateMode(){$("coffeeMode").classList.toggle("active",mode==="coffee");$("waterMode").classList.toggle("active",mode==="water");$("coffee").disabled=mode==="water";$("water").disabled=mode==="coffee"}
-function recalc(){
+function updateMode(){
+ if(current && current.type==="iced"){
+   $("coffeeMode").textContent="Coffee"; $("waterMode").textContent="Total water";
+   $("coffeeMode").classList.remove("active"); $("waterMode").classList.remove("active");
+   $("coffee").disabled=false; $("water").disabled=false;
+ } else {
+   $("coffeeMode").textContent="Coffee"; $("waterMode").textContent="Water";
+   $("coffeeMode").classList.toggle("active",mode==="coffee");$("waterMode").classList.toggle("active",mode==="water");
+   $("coffee").disabled=mode==="water";$("water").disabled=mode==="coffee";
+ }
+}
+function recalc(source){
  let ratio=+$("ratio").value||current.ratio;
- if(mode==="coffee") $("water").value=round((+$("coffee").value||0)*ratio,1);
+ if(current.type==="iced"){
+   ratio=+$("icedRatio").value||current.ratio;
+   $("ratio").value=ratio.toFixed(2);
+   $("icedRatioLabel").textContent="1:"+ratio.toFixed(2);
+   let pct=(+$("icePct").value||34)/100;
+   let ice=+$("ice").value||0, total=+$("water").value||0, coffee=+$("coffee").value||0;
+   if(source==="coffee"){
+     total=coffee*ratio;
+     ice=total*pct;
+   } else if(source==="water"){
+     coffee=total/ratio;
+     ice=total*pct;
+   } else if(source==="ratio"){
+     total=ice/pct;
+     coffee=total/ratio;
+   } else {
+     total=ice/pct;
+     coffee=total/ratio;
+   }
+   $("water").value=round(total,1);
+   $("coffee").value=round(coffee,1);
+   $("ice").value=round(ice,1);
+ } else if(mode==="coffee") $("water").value=round((+$("coffee").value||0)*ratio,1);
  else $("coffee").value=round((+$("water").value||0)/ratio,1);
  renderSteps();
 }
+function resetIcedRatio(){
+ $("icedRatio").value=current.ratio;
+ $("icedRatioLabel").textContent="1:"+(+current.ratio).toFixed(2);
+ recalc("ratio");
+}
+function resetIcePct(){
+ $("icePct").value=current.icePct||34;
+ $("icePctLabel").textContent=(+(current.icePct||34)).toFixed(2)+"%";
+ recalc();
+}
 function renderSteps(){
  let W=+$("water").value||0, html="";
- if(current.type==="kasuya"){
+ if(current.type==="iced"){
+   let ice=+$("ice").value||0, hot=Math.max(0,W-ice);
+   html+=step("Prep",hot,"Hot water into brewer first · valve closed");
+   html+=step("Then",+$("coffee").value||0,"Add ground coffee (g) and stir thoroughly");
+   html+=`<div class="step"><div class="time">4:00</div><div><div class="target">${round(ice,1)} g ice</div><div class="note">Weigh ice into serving carafe</div></div></div>`;
+   html+=`<div class="step"><div class="time">5:00</div><div><div class="target">Open valve</div><div class="note">Draw down completely onto the ice</div></div></div>`;
+ } else if(current.type==="kasuya"){
   let forty=W*.4, shift=+$("flavour").value/100, p1=forty*(.5+shift), p2=forty-p1;
   let vals=[p1,p1+p2], remain=W*.6/bodyPours;
   for(let i=1;i<=bodyPours;i++) vals.push(forty+remain*i);
@@ -124,9 +259,14 @@ function renderSteps(){
 }
 function step(t,v,n){return `<div class="step"><div class="time">${t}</div><div><div class="target">${round(v,1)} g</div><div class="note">${esc(n||"")}</div></div></div>`}
 function time45(i){let sec=i*45,m=Math.floor(sec/60),s=String(sec%60).padStart(2,"0");return m+":"+s}
-["coffee","water","ratio"].forEach(id=>$(id).addEventListener("input",recalc));$("flavour").addEventListener("input",renderSteps);
+$("coffee").addEventListener("input",()=>recalc("coffee"));
+$("water").addEventListener("input",()=>recalc("water"));
+$("ratio").addEventListener("input",()=>{ if(current.type!=="iced") recalc("ratio"); });
+$("ice").addEventListener("input",()=>recalc("ice"));
+$("icedRatio").addEventListener("input",()=>recalc("ratio"));
+$("icePct").addEventListener("input",()=>{$("icePctLabel").textContent=(+$("icePct").value).toFixed(2)+"%";recalc("ice")});
+$("flavour").addEventListener("input",renderSteps);
 document.querySelectorAll("[data-pours]").forEach(b=>b.onclick=()=>{bodyPours=+b.dataset.pours;document.querySelectorAll("[data-pours]").forEach(x=>x.classList.toggle("active",x===b));renderSteps()});
-function openRename(id){renameId=id;let r=recipes.find(x=>x.id===id);$("renameInput").value=r.name;$("renameModal").classList.remove("hidden");$("renameInput").focus()}
 function closeRename(){$("renameModal").classList.add("hidden")}
 function saveRename(){let v=$("renameInput").value.trim();if(v){recipes.find(x=>x.id===renameId).name=v;save();renderLibrary()}closeRename()}
 function round(n,d){let p=10**d;return Math.round(n*p)/p} function fmt(n){return (+n).toFixed(2).replace(/\.?0+$/,"")}
