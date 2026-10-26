@@ -21,7 +21,7 @@ input[type=number],input[type=text]{width:100%;border:1px solid var(--line);back
 .segment{display:flex;border:1px solid var(--line);border-radius:12px;overflow:hidden}.segment button{flex:1;border:0;border-right:1px solid var(--line);padding:10px 6px;background:#131b25;color:var(--muted)}.segment button:last-child{border-right:0}.segment button.active{background:var(--blue2);color:white}
 .range-label{display:flex;justify-content:space-between;color:var(--muted);font-size:12px} input[type=range]{width:100%;accent-color:var(--blue)}
 .step{display:grid;grid-template-columns:64px 1fr;gap:12px;padding:12px 0;border-bottom:1px solid #283545}.step:last-child{border-bottom:0}.time{color:var(--blue);font-weight:700}.target{font-size:21px;font-weight:750}.note{color:var(--muted);font-size:13px;margin-top:3px;line-height:1.4}
-.modal{position:fixed;inset:0;background:#080b10cc;display:flex;align-items:center;justify-content:center;padding:20px}.dialog{width:min(420px,100%);background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px}.dialog h3{margin:0 0 12px}.actions{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}
+.modal{position:fixed;inset:0;background:#080b10cc;display:flex;align-items:center;justify-content:center;padding:20px}.dialog{width:min(420px,100%);background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px}.dialog h3{margin:0 0 12px}.actions{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}.app-footer{margin-top:28px;padding:16px 4px;text-align:center;color:var(--muted);font-size:12px}.refresh{margin-top:9px}
 </style>
 </head>
 <body><main class="app">
@@ -69,6 +69,10 @@ input[type=number],input[type=text]{width:100%;border:1px solid var(--line);back
  </div>
  <div class="card"><div class="label">Cumulative water targets</div><div id="steps"></div></div>
 </section>
+<div class="app-footer">
+ <div>Coffee Brew · v5.5</div>
+ <button class="btn refresh" onclick="forceRefresh()">↻ Check for update</button>
+</div>
 </main>
 
 <div id="actionModal" class="modal hidden" onclick="if(event.target===this)closeActions()"><div class="dialog">
@@ -94,6 +98,13 @@ const defaults=[
  {id:"hoffmanniced",name:"James Hoffmann · Iced Immersion",brewer:"Hario Switch / Clever Dripper",coffee:37.5,water:500,ratio:13.33,type:"iced",
   icePct:34, hotWater:330, ice:170,
   footer:"Water first, then coffee · Stir thoroughly · Steep 5:00 (about 4:00 for darker roasts) · Open valve and draw down onto ice · Swirl to melt/chill, then serve over fresh ice"},
+ {id:"hoffmannaero",name:"James Hoffmann · Ultimate AeroPress",brewer:"AeroPress",coffee:11,water:200,ratio:18.18,type:"fixed",
+  steps:[
+   {t:"0:00",f:1,n:"Add all water, aiming to wet all the coffee; immediately insert plunger about 1 cm to create a vacuum"},
+   {t:"2:00",f:1,n:"Gently swirl brewer"},
+   {t:"2:30",f:1,n:"Press gently for about 30 seconds"}
+  ],
+  footer:"Finer end of medium grind · Light roast: ~99°C; medium roast: 90–95°C; dark roast: 85–90°C · Standard position · No rinse or preheat needed · Finish around 3:00–3:20"},
  {id:"kasuya",name:"Tetsu Kasuya · 4:6 Method",brewer:"V60",coffee:20,water:300,ratio:15,type:"kasuya",footer:"First 40% controls flavour; remaining 60% controls body"},
  {id:"kasuya10",name:"Tetsu Kasuya · 10-Pour V60",brewer:"V60 / Hario Neo",coffee:20,water:300,ratio:15,type:"fixed",
   steps:[
@@ -110,8 +121,8 @@ const defaults=[
   ],
   footer:"95–96°C · Super-coarse grind (French press range; ~40–45 clicks Comandante C40) · Draw down from 2:45, usually finishing around 3:00–3:30"}
 ];
-let savedV6=JSON.parse(localStorage.getItem("coffeeRecipesV7")||"null");
-let oldV5=JSON.parse(localStorage.getItem("coffeeRecipesV6")||localStorage.getItem("coffeeRecipesV5")||"null");
+let savedV6=JSON.parse(localStorage.getItem("coffeeRecipesV9")||"null");
+let oldV5=JSON.parse(localStorage.getItem("coffeeRecipesV8")||localStorage.getItem("coffeeRecipesV7")||localStorage.getItem("coffeeRecipesV6")||localStorage.getItem("coffeeRecipesV5")||"null");
 let recipes=savedV6 || (oldV5 ? [...oldV5, ...defaults.filter(d=>!oldV5.some(r=>r.id===d.id))] : defaults);
 let priorOrder=JSON.parse(localStorage.getItem("coffeeOrderV7")||"null") || JSON.parse(localStorage.getItem("coffeeOrderV6")||localStorage.getItem("coffeeOrderV5")||"null");
 let customOrder=JSON.parse(localStorage.getItem("coffeeOrderV8")||"null");
@@ -134,7 +145,7 @@ function orderIds(){
 }
 function ordered(){return orderIds().map(id=>recipes.find(r=>r.id===id)).filter(Boolean)}
 function save(){
- localStorage.setItem("coffeeRecipesV7",JSON.stringify(recipes));
+ localStorage.setItem("coffeeRecipesV9",JSON.stringify(recipes));
  if(customOrder) localStorage.setItem("coffeeOrderV8",JSON.stringify(customOrder));
 }
 function renderLibrary(){
@@ -269,6 +280,11 @@ $("flavour").addEventListener("input",renderSteps);
 document.querySelectorAll("[data-pours]").forEach(b=>b.onclick=()=>{bodyPours=+b.dataset.pours;document.querySelectorAll("[data-pours]").forEach(x=>x.classList.toggle("active",x===b));renderSteps()});
 function closeRename(){$("renameModal").classList.add("hidden")}
 function saveRename(){let v=$("renameInput").value.trim();if(v){recipes.find(x=>x.id===renameId).name=v;save();renderLibrary()}closeRename()}
+function forceRefresh(){
+ const u=new URL(window.location.href);
+ u.searchParams.set("_refresh",Date.now());
+ window.location.replace(u.toString());
+}
 function round(n,d){let p=10**d;return Math.round(n*p)/p} function fmt(n){return (+n).toFixed(2).replace(/\.?0+$/,"")}
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 renderLibrary();
