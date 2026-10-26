@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#151b24">
+<title>Coffee Brew</title>
+<style>
+:root{--bg:#11161e;--panel:#19212c;--panel2:#202b38;--line:#314156;--text:#edf3f9;--muted:#96a8ba;--blue:#6fa8dc;--blue2:#315f88;--danger:#d98989}
+*{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font:15px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.app{max-width:620px;margin:auto;padding:22px 16px 60px}.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+h1{font-size:26px;margin:0}.sub{color:var(--muted);font-size:13px;margin-top:4px}
+button,input{font:inherit}.btn{border:1px solid var(--line);background:var(--panel2);color:var(--text);border-radius:12px;padding:10px 13px}
+.recipe{background:var(--panel);border:1px solid #273548;border-radius:16px;padding:15px;margin:10px 0;display:flex;gap:12px;align-items:center}
+.drag{color:#71869b;font-size:20px;cursor:grab;user-select:none}.recipe-main{flex:1;cursor:pointer}.recipe-name{font-weight:700;font-size:16px}.meta{color:var(--muted);font-size:13px;margin-top:5px}
+.icon{border:0;background:transparent;color:var(--muted);font-size:20px;padding:8px}.hint{color:var(--muted);font-size:12px;line-height:1.45;margin:14px 3px}
+.hidden{display:none!important}.back{border:0;background:none;color:var(--blue);padding:0 0 14px;font-size:15px}
+.card{background:var(--panel);border:1px solid #273548;border-radius:17px;padding:16px;margin:12px 0}
+.card h2{font-size:20px;margin:0 0 4px}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.label{color:var(--muted);font-size:12px;margin-bottom:6px}
+input[type=number],input[type=text]{width:100%;border:1px solid var(--line);background:#111821;color:var(--text);border-radius:11px;padding:11px}
+.segment{display:flex;border:1px solid var(--line);border-radius:12px;overflow:hidden}.segment button{flex:1;border:0;border-right:1px solid var(--line);padding:10px 6px;background:#131b25;color:var(--muted)}.segment button:last-child{border-right:0}.segment button.active{background:var(--blue2);color:white}
+.range-label{display:flex;justify-content:space-between;color:var(--muted);font-size:12px} input[type=range]{width:100%;accent-color:var(--blue)}
+.step{display:grid;grid-template-columns:64px 1fr;gap:12px;padding:12px 0;border-bottom:1px solid #283545}.step:last-child{border-bottom:0}.time{color:var(--blue);font-weight:700}.target{font-size:21px;font-weight:750}.note{color:var(--muted);font-size:13px;margin-top:3px;line-height:1.4}
+.modal{position:fixed;inset:0;background:#080b10cc;display:flex;align-items:center;justify-content:center;padding:20px}.dialog{width:min(420px,100%);background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px}.dialog h3{margin:0 0 12px}.actions{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}
+</style>
+</head>
+<body><main class="app">
+<section id="library">
+ <div class="top"><div><h1>My Coffee Recipes</h1><div class="sub">Your brew library</div></div></div>
+ <div id="recipeList"></div>
+ <div class="hint">Recipes are alphabetical by default. Drag a recipe upward to keep a favourite at the top. Tap ••• to rename it.</div>
+</section>
+
+<section id="brew" class="hidden">
+ <button class="back" onclick="showLibrary()">‹ My Recipes</button>
+ <div class="card"><h2 id="brewName"></h2><div id="brewMeta" class="sub"></div></div>
+ <div class="card">
+  <div class="label">Calculate from</div>
+  <div class="segment" style="margin-bottom:12px"><button id="coffeeMode" onclick="setMode('coffee')">Coffee</button><button id="waterMode" onclick="setMode('water')">Water</button></div>
+  <div class="row">
+   <div><div class="label">Coffee (g)</div><input id="coffee" type="number" step=".1"></div>
+   <div><div class="label">Water (g)</div><input id="water" type="number" step="1"></div>
+  </div>
+  <div style="margin-top:10px"><div class="label">Water : coffee ratio</div><input id="ratio" type="number" step=".01"></div>
+ </div>
+ <div id="kasuyaControls" class="hidden">
+  <div class="card"><div class="label">First 40% · Flavour balance</div><input id="flavour" type="range" min="-10" max="10" step="1" value="0"><div class="range-label"><span>Sweeter</span><span>Balanced</span><span>Brighter</span></div></div>
+  <div class="card"><div class="label">Remaining 60% · Body</div><div class="segment"><button data-pours="2">2 pours</button><button data-pours="3" class="active">3 pours</button><button data-pours="4">4 pours</button></div><div class="range-label" style="margin-top:7px"><span>Lighter</span><span>Classic</span><span>Stronger</span></div></div>
+ </div>
+ <div class="card"><div class="label">Cumulative water targets</div><div id="steps"></div></div>
+</section>
+</main>
+
+<div id="renameModal" class="modal hidden"><div class="dialog"><h3>Rename recipe</h3><input id="renameInput" type="text"><div class="actions"><button class="btn" onclick="closeRename()">Cancel</button><button class="btn" onclick="saveRename()">Save</button></div></div></div>
+
+<script>
+const defaults=[
+ {id:"april",name:"April Brewer · Base Recipe",brewer:"April Brewer",coffee:12,water:200,ratio:16.67,type:"fixed",
+  steps:[{t:"0:00",f:.5,n:"Pour 40g circular + 60g centre"},{t:"0:30",f:1,n:"Pour 40g circular + 60g centre"}],
+  footer:"92°C · Aim for roughly 2:20–3:00 total brew time"},
+ {id:"hoffmann",name:"James Hoffmann · 1-Cup V60",brewer:"V60",coffee:15,water:250,ratio:16.67,type:"fixed",
+  steps:[{t:"0:00",f:.2,n:"Bloom, then gently swirl"},{t:"0:45",f:.4,n:"Pour to target"},{t:"1:10",f:.6,n:"Pour to target"},{t:"1:30",f:.8,n:"Pour to target"},{t:"1:50",f:1,n:"Final pour"},{t:"2:00",f:1,n:"Gentle swirl and draw down"}],
+  footer:"Fine-medium grind · Hot/boiling water · Aim for ~3:00 total"},
+ {id:"kasuya",name:"Tetsu Kasuya · 4:6 Method",brewer:"V60",coffee:20,water:300,ratio:15,type:"kasuya",footer:"First 40% controls flavour; remaining 60% controls body"}
+];
+let recipes=JSON.parse(localStorage.getItem("coffeeRecipesV4")||"null")||defaults;
+let pinned=JSON.parse(localStorage.getItem("coffeePinnedV4")||"[]");
+let current=null, mode="coffee", bodyPours=3, renameId=null;
+const $=id=>document.getElementById(id);
+function save(){localStorage.setItem("coffeeRecipesV4",JSON.stringify(recipes));localStorage.setItem("coffeePinnedV4",JSON.stringify(pinned))}
+function ordered(){
+ let pin=pinned.map(id=>recipes.find(r=>r.id===id)).filter(Boolean);
+ let rest=recipes.filter(r=>!pinned.includes(r.id)).sort((a,b)=>a.name.localeCompare(b.name));
+ return [...pin,...rest];
+}
+function renderLibrary(){
+ $("recipeList").innerHTML="";
+ ordered().forEach(r=>{
+  let el=document.createElement("div");el.className="recipe";el.draggable=true;el.dataset.id=r.id;
+  el.innerHTML=`<div class="drag">≡</div><div class="recipe-main"><div class="recipe-name">${esc(r.name)}</div><div class="meta">${esc(r.brewer)} · 1:${fmt(r.ratio)}</div></div><button class="icon">•••</button>`;
+  el.querySelector(".recipe-main").onclick=()=>openRecipe(r.id);
+  el.querySelector(".icon").onclick=()=>openRename(r.id);
+  el.ondragstart=e=>e.dataTransfer.setData("text/plain",r.id);
+  el.ondragover=e=>e.preventDefault();
+  el.ondrop=e=>{e.preventDefault();let moved=e.dataTransfer.getData("text/plain"), target=r.id;if(moved===target)return;
+    let arr=ordered().map(x=>x.id);arr.splice(arr.indexOf(moved),1);arr.splice(arr.indexOf(target),0,moved);
+    let firstUnpinned=arr.findIndex(id=>!pinned.includes(id)&&id!==moved); 
+    if(firstUnpinned<0) firstUnpinned=arr.length;
+    let targetIndex=arr.indexOf(moved);
+    if(targetIndex<=firstUnpinned){pinned=arr.slice(0,targetIndex+1)} else {pinned=pinned.filter(id=>id!==moved)}
+    save();renderLibrary();
+  };
+  $("recipeList").appendChild(el);
+ });
+}
+function openRecipe(id){
+ current=recipes.find(r=>r.id===id);mode="coffee";bodyPours=3;
+ $("library").classList.add("hidden");$("brew").classList.remove("hidden");
+ $("brewName").textContent=current.name;$("brewMeta").textContent=current.brewer+" · Default 1:"+fmt(current.ratio);
+ $("coffee").value=current.coffee;$("water").value=current.water;$("ratio").value=current.ratio;
+ $("kasuyaControls").classList.toggle("hidden",current.type!=="kasuya");$("flavour").value=0;
+ document.querySelectorAll("[data-pours]").forEach(b=>b.classList.toggle("active",+b.dataset.pours===3));
+ updateMode();renderSteps();
+}
+function showLibrary(){$("brew").classList.add("hidden");$("library").classList.remove("hidden");renderLibrary()}
+function setMode(m){mode=m;updateMode();recalc()}
+function updateMode(){$("coffeeMode").classList.toggle("active",mode==="coffee");$("waterMode").classList.toggle("active",mode==="water");$("coffee").disabled=mode==="water";$("water").disabled=mode==="coffee"}
+function recalc(){
+ let ratio=+$("ratio").value||current.ratio;
+ if(mode==="coffee") $("water").value=round((+$("coffee").value||0)*ratio,1);
+ else $("coffee").value=round((+$("water").value||0)/ratio,1);
+ renderSteps();
+}
+function renderSteps(){
+ let W=+$("water").value||0, html="";
+ if(current.type==="kasuya"){
+  let forty=W*.4, shift=+$("flavour").value/100, p1=forty*(.5+shift), p2=forty-p1;
+  let vals=[p1,p1+p2], remain=W*.6/bodyPours;
+  for(let i=1;i<=bodyPours;i++) vals.push(forty+remain*i);
+  vals.forEach((v,i)=>html+=step(i===0?"0:00":time45(i),v,i<2?(i===0?"Flavour pour 1":"Flavour pour 2"):"Body pour"));
+ } else current.steps.forEach(s=>html+=step(s.t,W*s.f,s.n));
+ if(current.footer) html+=`<div class="note" style="padding-top:12px">${esc(current.footer)}</div>`;
+ $("steps").innerHTML=html;
+}
+function step(t,v,n){return `<div class="step"><div class="time">${t}</div><div><div class="target">${round(v,1)} g</div><div class="note">${esc(n||"")}</div></div></div>`}
+function time45(i){let sec=i*45,m=Math.floor(sec/60),s=String(sec%60).padStart(2,"0");return m+":"+s}
+["coffee","water","ratio"].forEach(id=>$(id).addEventListener("input",recalc));$("flavour").addEventListener("input",renderSteps);
+document.querySelectorAll("[data-pours]").forEach(b=>b.onclick=()=>{bodyPours=+b.dataset.pours;document.querySelectorAll("[data-pours]").forEach(x=>x.classList.toggle("active",x===b));renderSteps()});
+function openRename(id){renameId=id;let r=recipes.find(x=>x.id===id);$("renameInput").value=r.name;$("renameModal").classList.remove("hidden");$("renameInput").focus()}
+function closeRename(){$("renameModal").classList.add("hidden")}
+function saveRename(){let v=$("renameInput").value.trim();if(v){recipes.find(x=>x.id===renameId).name=v;save();renderLibrary()}closeRename()}
+function round(n,d){let p=10**d;return Math.round(n*p)/p} function fmt(n){return (+n).toFixed(2).replace(/\.?0+$/,"")}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+renderLibrary();
+</script></body></html>
