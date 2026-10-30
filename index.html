@@ -21,12 +21,12 @@ input[type=number],input[type=text]{width:100%;border:1px solid var(--line);back
 .segment{display:flex;border:1px solid var(--line);border-radius:12px;overflow:hidden}.segment button{flex:1;border:0;border-right:1px solid var(--line);padding:10px 6px;background:#131b25;color:var(--muted)}.segment button:last-child{border-right:0}.segment button.active{background:var(--blue2);color:white}
 .range-label{display:flex;justify-content:space-between;color:var(--muted);font-size:12px} input[type=range]{width:100%;accent-color:var(--blue)}
 .step{display:grid;grid-template-columns:64px 1fr;gap:12px;padding:12px 0;border-bottom:1px solid #283545}.step:last-child{border-bottom:0}.time{color:var(--blue);font-weight:700}.target{font-size:21px;font-weight:750}.note{color:var(--muted);font-size:13px;margin-top:3px;line-height:1.4}.valve{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:800;letter-spacing:.05em;border:1px solid var(--line);border-radius:999px;padding:5px 9px;margin-bottom:7px}.valve.open{color:#9fe3b0;background:#183126;border-color:#315b40}.valve.closed{color:#f1b1b1;background:#351f22;border-color:#674047}.valve-dot{width:7px;height:7px;border-radius:50%;background:currentColor}
-.modal{position:fixed;inset:0;background:#080b10cc;display:flex;align-items:center;justify-content:center;padding:20px}.dialog{width:min(420px,100%);background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px}.dialog h3{margin:0 0 12px}.actions{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}.group-title{color:var(--muted);font-size:12px;font-weight:800;letter-spacing:.08em;margin:20px 3px 8px}.group-card{background:var(--panel);border:1px solid #273548;border-radius:16px;padding:16px;margin:10px 0;display:flex;align-items:center;justify-content:space-between;cursor:pointer}.group-card:active{transform:scale(.99)}.group-name{font-weight:750;font-size:16px}.group-count{color:var(--muted);font-size:13px;margin-top:4px}.group-arrow{color:var(--blue);font-size:22px}.group-back{border:0;background:none;color:var(--blue);padding:2px 0 10px;font-size:14px}.source-note{margin-top:12px;padding-top:10px;border-top:1px solid #283545;color:var(--muted);font-size:13px}.source-note a{color:var(--blue);text-decoration:none}.app-footer{margin-top:28px;padding:16px 4px;text-align:center;color:var(--muted);font-size:12px}
+.modal{position:fixed;inset:0;background:#080b10cc;display:flex;align-items:center;justify-content:center;padding:20px}.dialog{width:min(420px,100%);background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px}.dialog h3{margin:0 0 12px}.actions{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}.group-title{color:var(--muted);font-size:12px;font-weight:800;letter-spacing:.08em;margin:20px 3px 8px}.group-card{background:var(--panel);border:1px solid #273548;border-radius:16px;padding:16px;margin:10px 0;display:flex;align-items:center;justify-content:space-between;cursor:pointer}.group-card:active{transform:scale(.99)}.group-name{font-weight:750;font-size:16px}.group-count{color:var(--muted);font-size:13px;margin-top:4px}.group-arrow{color:var(--blue);font-size:22px}.group-back{border:0;background:none;color:var(--blue);padding:2px 0 10px;font-size:14px}.brew-check{line-height:1.5}.brew-check-title{font-size:14px;font-weight:750;margin-bottom:7px}.brew-check-line{color:var(--muted);font-size:13px;margin:5px 0}.brew-check-line strong{color:var(--text);font-weight:650}.source-note{margin-top:12px;padding-top:10px;border-top:1px solid #283545;color:var(--muted);font-size:13px}.source-note a{color:var(--blue);text-decoration:none}.app-footer{margin-top:28px;padding:16px 4px;text-align:center;color:var(--muted);font-size:12px}
 </style>
 </head>
 <body><main class="app">
 <section id="library">
- <div class="top"><div><h1>My Coffee Recipes</h1><div class="sub">Your brew library</div></div><div class="top-tools"><span>v5.12</span><button class="brew-refresh" onclick="forceRefresh()" aria-label="Force refresh" title="Force refresh">↻</button></div></div>
+ <div class="top"><div><h1>My Coffee Recipes</h1><div class="sub">Your brew library</div></div><div class="top-tools"><span>v5.14</span><button class="brew-refresh" onclick="forceRefresh()" aria-label="Force refresh" title="Force refresh">↻</button></div></div>
  <div class="search-wrap"><input id="recipeSearch" class="search" type="search" placeholder="Search recipes…" autocomplete="off" autocapitalize="off"><button id="searchClear" class="search-clear hidden" type="button" aria-label="Clear search" title="Clear search">×</button></div>
  <div id="recipeList"></div>
  <div class="hint">★ Favourites stay on the main page. Brewers with multiple recipes are grouped automatically. Search checks recipe names and contents.</div>
@@ -62,6 +62,7 @@ input[type=number],input[type=text]{width:100%;border:1px solid var(--line);back
   <div class="card"><div class="label">Remaining 60% · Body</div><div class="segment"><button data-pours="2">2 pours</button><button data-pours="3" class="active">3 pours</button><button data-pours="4">4 pours</button></div><div class="range-label" style="margin-top:7px"><span>Lighter</span><span>Classic</span><span>Stronger</span></div></div>
  </div>
  <div class="card"><div class="label">Cumulative water targets</div><div id="steps"></div></div>
+ <div id="brewCheckCard" class="card brew-check"><div class="brew-check-title">Brew check</div><div id="brewCheck"></div></div>
 </section>
 
 </main>
@@ -81,23 +82,23 @@ input[type=number],input[type=text]{width:100%;border:1px solid var(--line);back
 
 <script>
 const defaults=[
- {id:"april",name:"April Brewer · Base Recipe",brewer:"April Brewer",categories:["April Brewer"],grind:"Medium-fine",coffee:12,water:200,ratio:16.67,type:"fixed",
+ {id:"april",temp:"92°C",check:["Target finish: 2:20–3:00","Two 100g pours; keep the intended fast, even flow","If drawdown slows sharply near the end, reduce agitation or try coarser before changing the pour pattern"],name:"April Brewer · Base Recipe",brewer:"April Brewer",categories:["April Brewer"],grind:"Medium-fine",coffee:12,water:200,ratio:16.67,type:"fixed",
   steps:[{t:"0:00",f:.5,n:"Pour 40g circular + 60g centre"},{t:"0:30",f:1,n:"Pour 40g circular + 60g centre"}],
   footer:"92°C · Aim for roughly 2:20–3:00 total brew time"},
- {id:"hoffmann",name:"James Hoffmann · 1-Cup V60",brewer:"V60",categories:["V60"],grind:"Medium-fine",coffee:18,water:300,ratio:16.67,type:"fixed",defaultMode:"water",youtube:"https://www.youtube.com/watch?v=1oB1oDrDkHM",
+ {id:"hoffmann",temp:"Freshly boiled / very hot",check:["Target finish: around 3:00","Follow the timed pours rather than waiting for the bed to drain between each one","If the brewer progressively fills higher and the final drawdown drags well past target, try coarser or reduce agitation"],name:"James Hoffmann · 1-Cup V60",brewer:"V60",categories:["V60"],grind:"Medium-fine",coffee:18,water:300,ratio:16.67,type:"fixed",defaultMode:"water",youtube:"https://www.youtube.com/watch?v=1oB1oDrDkHM",
   steps:[{t:"0:00",f:.2,n:"Bloom, then gently swirl"},{t:"0:45",f:.4,n:"Pour to target"},{t:"1:10",f:.6,n:"Pour to target"},{t:"1:30",f:.8,n:"Pour to target"},{t:"1:50",f:1,n:"Final pour"},{t:"2:00",f:1,n:"Gentle swirl and draw down"}],
   footer:"Hot/boiling water · Aim for ~3:00 total"},
- {id:"hoffmanniced",name:"James Hoffmann · Iced Immersion",brewer:"Hario Switch / Clever Dripper",categories:["Hario Switch","Clever Dripper"],grind:"Medium-fine",coffee:22.5,water:300,ratio:13.33,type:"iced",defaultMode:"water",youtube:"https://www.youtube.com/watch?v=8uGGeV8A-BM",
+ {id:"hoffmanniced",temp:"Freshly boiled",check:["Steep: at least 5:00 (about 4:00 for darker roasts)","After opening the valve, draw down fully onto the ice","For this immersion recipe, steep time is the main checkpoint; drawdown is less useful as a grind target than for V60"],name:"James Hoffmann · Iced Immersion",brewer:"Hario Switch / Clever Dripper",categories:["Hario Switch","Clever Dripper"],grind:"Medium-fine",coffee:22.5,water:300,ratio:13.33,type:"iced",defaultMode:"water",youtube:"https://www.youtube.com/watch?v=8uGGeV8A-BM",
   icePct:34, hotWater:198, ice:102,
   footer:"Water first, then coffee · Stir thoroughly · Steep 5:00 (about 4:00 for darker roasts) · Open valve and draw down onto ice · Swirl to melt/chill, then serve over fresh ice"},
- {id:"hoffmannaero",name:"James Hoffmann · Ultimate AeroPress",brewer:"AeroPress",categories:["AeroPress"],grind:"Medium-fine",coffee:11,water:200,ratio:18.18,type:"fixed",youtube:"https://www.youtube.com/watch?v=j6VlT_jUVPc",
+ {id:"hoffmannaero",temp:"Light ~99°C · Medium 90–95°C · Dark 85–90°C",check:["Steep to 2:00, swirl, then rest to 2:30","Press gently for about 30 seconds; target finish around 3:00–3:20","If pressing needs substantial force, grind coarser; do not use force to chase a fixed finish time"],name:"James Hoffmann · Ultimate AeroPress",brewer:"AeroPress",categories:["AeroPress"],grind:"Medium-fine",coffee:11,water:200,ratio:18.18,type:"fixed",youtube:"https://www.youtube.com/watch?v=j6VlT_jUVPc",
   steps:[
    {t:"0:00",f:1,n:"Add all water, aiming to wet all the coffee; immediately insert plunger about 1 cm to create a vacuum"},
    {t:"2:00",f:1,n:"Gently swirl brewer"},
    {t:"2:30",f:1,n:"Press gently for about 30 seconds"}
   ],
   footer:"Light roast: ~99°C; medium roast: 90–95°C; dark roast: 85–90°C · Standard position · No rinse or preheat needed · Finish around 3:00–3:20"},
- {id:"doublebloom",name:"Double Bloom · Hario Switch",brewer:"Hario Switch",categories:["Hario Switch"],grind:"Very coarse",coffee:18,water:300,ratio:16.67,type:"fixed",defaultMode:"water",
+ {id:"doublebloom",temp:"92°C",check:["Each 50g bloom should drain after you open the valve before starting the next closed-valve bloom","Valve timing is the main checkpoint; there is no strict total finish time in the source version we saved","If an open-valve drain is unusually slow, try coarser or gentler agitation"],name:"Double Bloom · Hario Switch",brewer:"Hario Switch",categories:["Hario Switch"],grind:"Very coarse",coffee:18,water:300,ratio:16.67,type:"fixed",defaultMode:"water",
   steps:[
    {t:"0:00",g:50,n:"First bloom to 50g",valve:"closed"},
    {t:"~0:35",g:50,n:"Let the first bloom drain",valve:"open"},
@@ -106,14 +107,14 @@ const defaults=[
    {t:"Then",f:1,n:"Pour to final target with valve open",valve:"open"}
   ],
   footer:"92°C · Two fixed 50g blooms"},
- {id:"chroniclerswitch",name:"The Coffee Chronicler · Ultimate Hario Switch",brewer:"Hario Switch",categories:["Hario Switch"],grind:"Medium-fine",coffee:20,water:320,ratio:16,type:"fixed",defaultMode:"water",youtube:"https://www.youtube.com/watch?v=68ZOXrXbVHc",
+ {id:"chroniclerswitch",temp:"93°C",check:["OPEN for the first 160g; CLOSE at about 0:45 for the second 160g","OPEN again at 2:00","Target finish: about 2:45–3:15; if release drawdown is much slower, try coarser or less agitation"],name:"The Coffee Chronicler · Ultimate Hario Switch",brewer:"Hario Switch",categories:["Hario Switch"],grind:"Medium-fine",coffee:20,water:320,ratio:16,type:"fixed",defaultMode:"water",youtube:"https://www.youtube.com/watch?v=68ZOXrXbVHc",
   steps:[
    {t:"0:00",f:.5,n:"Pour first 50% of the water and let it percolate",valve:"open"},
    {t:"0:45",f:1,n:"Close valve, then pour the remaining 50%",valve:"closed"},
    {t:"2:00",f:1,n:"Release and let the brew drain",valve:"open"}
   ],
   footer:"93°C · Target finish ~2:45–3:15"},
- {id:"sherryswitch",name:"Sherry Hsu · Hario Switch",brewer:"Hario Switch",categories:["Hario Switch"],grind:"Medium-coarse",coffee:16,water:240,ratio:15,type:"fixed",defaultMode:"water",youtube:"https://www.youtube.com/watch?v=wCNxPYyGWoo&t=383s",
+ {id:"sherryswitch",temp:"90°C",check:["Keep valve OPEN through the 50g bloom and pour to 150g","CLOSE at 1:00; OPEN at 1:30","Target finish: about 1:45–2:00; a much longer release drawdown suggests going coarser"],name:"Sherry Hsu · Hario Switch",brewer:"Hario Switch",categories:["Hario Switch"],grind:"Medium-coarse",coffee:16,water:240,ratio:15,type:"fixed",defaultMode:"water",youtube:"https://www.youtube.com/watch?v=wCNxPYyGWoo&t=383s",
   steps:[
    {t:"0:00",g:50,n:"Bloom to 50g",valve:"open"},
    {t:"0:30",g:150,n:"Pour to 150g cumulative",valve:"open"},
@@ -121,29 +122,46 @@ const defaults=[
    {t:"1:30",f:1,n:"Open valve and drain",valve:"open"}
   ],
   footer:"90°C · Original recipe 16g / 240g (1:15) · Target finish ~1:45–2:00"},
- {id:"lance121",name:"Lance Hedrick · 1-2-1 Method",brewer:"V60",categories:["V60"],grind:"Medium-fine",coffee:18,water:306,ratio:17,type:"fixed",defaultMode:"water",
+ {id:"lance121",temp:"100°C",check:["Hold the bloom for the full 2:00 before the main pour","Target finish: around 3:50","Past roughly 4:40: try coarser. Before roughly 3:00: try finer. Keep the pour structure unchanged while dialing grind"],name:"Lance Hedrick · 1-2-1 Method",brewer:"V60",categories:["V60"],grind:"Medium-fine",coffee:18,water:306,ratio:17,type:"fixed",defaultMode:"water",
   steps:[
    {t:"0:00",g:54,n:"Bloom to 54g, then swirl vigorously to wet the whole bed"},
    {t:"2:00",f:1,n:"Pour steadily in a spiral to final target"},
    {t:"~2:45",f:1,n:"Give a gentle swirl and allow to draw down"}
   ],
   footer:"100°C for light roast · Long 2:00 bloom · Original 18g / 306g (1:17) · Target finish ~3:50"},
- {id:"dujianing",name:"Du Jianing · 2019 WBrC Origami",brewer:"Origami · Wave filter",categories:["Origami"],grind:"Medium",coffee:16,water:240,ratio:15,type:"fixed",defaultMode:"water",
+ {id:"dujianing",temp:"94°C",check:["This is intentionally a very fast recipe","Final pour begins around 0:56; target complete drawdown around 1:40–1:45","If it runs substantially longer, check grind and filter flow rather than extending the prescribed pauses"],name:"Du Jianing · 2019 WBrC Origami",brewer:"Origami · Wave filter",categories:["Origami"],grind:"Medium",coffee:16,water:240,ratio:15,type:"fixed",defaultMode:"water",
   steps:[
    {t:"0:00",g:60,n:"Pour to 60g over about 10 seconds"},
    {t:"0:18",g:140,n:"Pour to 140g cumulative over about 20 seconds"},
    {t:"0:56",f:1,n:"Final pour to target at about 5g/s"}
   ],
   footer:"94°C · Kalita Wave / flat filter in Origami · Original 16g / 240g (1:15) · Fast drawdown, target ~1:45"},
- {id:"scottrao",name:"Scott Rao · V60",brewer:"V60",categories:["V60"],grind:"Medium-fine",coffee:20,water:330,ratio:16.5,type:"fixed",defaultMode:"water",
+ {id:"carlosmedina",temp:"91°C",check:["Five equal 50g pours at 30-second intervals","Target finish: about 2:40","Keep the equal-pour rhythm; if water accumulates progressively and drawdown runs long, try coarser before changing the schedule"],name:"Carlos Medina · 2023 WBrC Origami",brewer:"Origami · Cone filter",categories:["V60","Origami"],grind:"Medium-coarse",coffee:15.5,water:250,ratio:16.13,type:"fixed",defaultMode:"water",youtube:"https://www.youtube.com/watch?v=vvD5UY1yMhk",
+  steps:[
+   {t:"0:00",g:50,n:"Pour 50g in a circular spiral"},
+   {t:"0:30",g:100,n:"Pour to 100g cumulative"},
+   {t:"1:00",g:150,n:"Pour to 150g cumulative"},
+   {t:"1:30",g:200,n:"Pour to 200g cumulative"},
+   {t:"2:00",f:1,n:"Final pour to target"}
+  ],
+  footer:"91°C · Cone filter · Five equal pours, 30 seconds apart · Original 15.5g / 250g · Target finish ~2:40"},
+ {id:"timwendelboe",temp:"Boiling / ~96–100°C",check:["Steep for 60 seconds, with exactly 3 stirs before and 3 stirs after","Press steadily using body weight; typical total is about 1:30–1:50","If the press is unusually hard, try coarser; press resistance is more useful here than pour-over drawdown"],name:"Tim Wendelboe · AeroPress",brewer:"AeroPress",categories:["AeroPress"],grind:"Fine filter",coffee:14,water:200,ratio:14.29,type:"fixed",youtube:"https://www.youtube.com/watch?v=7JISZNixkeA",
+  steps:[
+   {t:"0:00",f:1,n:"Pour all water, then stir 3 times front to back"},
+   {t:"0:10",f:1,n:"Insert plunger slightly to stop the brew draining"},
+   {t:"1:10",f:1,n:"Remove plunger and stir 3 times front to back"},
+   {t:"1:15",f:1,n:"Replace plunger and press steadily using body weight"}
+  ],
+  footer:"100°C for light roast · Rinse paper filter · Original 14g / 200g (1:14.3) · Press gently; do not force the last of the brew"},
+ {id:"scottrao",temp:"97°C",check:["After the middle pour, wait until the slurry is about 70% drained before the final pour","Target finish: about 4:00–4:30 for this version","If flow starts normally but stalls late, reduce agitation or go coarser rather than changing Rao’s drainage cue"],name:"Scott Rao · V60",brewer:"V60",categories:["V60"],grind:"Medium-fine",coffee:20,water:330,ratio:16.5,type:"fixed",defaultMode:"water",
   steps:[
    {t:"0:00",g:60,n:"Bloom to 60g, then spin aggressively"},
    {t:"0:40",g:200,n:"Pour to 200g cumulative, then give a very gentle spin"},
    {t:"~1:30",f:1,n:"When slurry is about 70% drained, pour to final target and give another very gentle spin"}
   ],
   footer:"97°C · Low, steady pour · Original 20g / 330g · Target finish ~4:00–4:30"},
- {id:"kasuya",name:"Tetsu Kasuya · 4:6 Method",brewer:"V60",categories:["V60"],grind:"Medium-coarse",coffee:20,water:300,ratio:15,type:"kasuya",defaultMode:"water",footer:"First 40% controls flavour; remaining 60% controls body"},
- {id:"kasuya10",name:"Tetsu Kasuya · 10-Pour V60",brewer:"V60 / Hario Neo",categories:["V60","Hario Neo","Origami (cone)"],grind:"Super-coarse",coffee:20,water:300,ratio:15,type:"fixed",defaultMode:"water",youtube:"https://www.youtube.com/watch?v=1QLvuh2O7i8",
+ {id:"kasuya",temp:"92°C",check:["Let each pulse almost completely pass through before the next pour","Target finish: about 3:15–3:30 for the classic five-pour version","If the bed is still high at the next scheduled pour, you are running slower than intended; try coarser or reduce agitation"],name:"Tetsu Kasuya · 4:6 Method",brewer:"V60",categories:["V60"],grind:"Medium-coarse",coffee:20,water:300,ratio:15,type:"kasuya",defaultMode:"water",footer:"First 40% controls flavour; remaining 60% controls body"},
+ {id:"kasuya10",temp:"95–96°C",check:["Keep the small pours on their rapid cadence; the bed should not build into a deep pool","Target finish: around 3:00–3:30","Some late slowing is expected. If it stalls dramatically or water keeps accumulating, go coarser and keep agitation gentle"],name:"Tetsu Kasuya · 10-Pour V60",brewer:"V60 / Hario Neo",categories:["V60","Hario Neo","Origami"],grind:"Super-coarse",coffee:20,water:300,ratio:15,type:"fixed",defaultMode:"water",youtube:"https://www.youtube.com/watch?v=1QLvuh2O7i8",
   steps:[
    {t:"0:00",f:.1,n:"Bloom · pour 30g"},
    {t:"0:30",f:.2,n:"Pour 2 · add 30g"},
@@ -158,7 +176,7 @@ const defaults=[
   ],
   footer:"95–96°C · Draw down from 2:45, usually finishing around 3:00–3:30"}
 ];
-let savedV6=JSON.parse(localStorage.getItem("coffeeRecipesV11")||localStorage.getItem("coffeeRecipesV10")||localStorage.getItem("coffeeRecipesV9")||"null");
+let savedV6=JSON.parse(localStorage.getItem("coffeeRecipesV13")||localStorage.getItem("coffeeRecipesV12")||localStorage.getItem("coffeeRecipesV11")||localStorage.getItem("coffeeRecipesV10")||localStorage.getItem("coffeeRecipesV9")||"null");
 let oldV5=JSON.parse(localStorage.getItem("coffeeRecipesV8")||localStorage.getItem("coffeeRecipesV7")||localStorage.getItem("coffeeRecipesV6")||localStorage.getItem("coffeeRecipesV5")||"null");
 let recipes=savedV6 || (oldV5 ? [...oldV5, ...defaults.filter(d=>!oldV5.some(r=>r.id===d.id))] : [...defaults]);
 recipes=[...recipes, ...defaults.filter(d=>!recipes.some(r=>r.id===d.id))];
@@ -185,7 +203,7 @@ function orderIds(){
 }
 function ordered(){let base=orderIds().map(id=>recipes.find(r=>r.id===id)).filter(Boolean);return [...base.filter(r=>starred.includes(r.id)),...base.filter(r=>!starred.includes(r.id))]}
 function save(){
- localStorage.setItem("coffeeRecipesV11",JSON.stringify(recipes));
+ localStorage.setItem("coffeeRecipesV13",JSON.stringify(recipes));
  if(customOrder) localStorage.setItem("coffeeOrderV8",JSON.stringify(customOrder));
  localStorage.setItem("coffeeStarredV2",JSON.stringify(starred));
 }
@@ -216,10 +234,11 @@ function renderLibrary(){
  // Show singletons directly only when the recipe is not part of any multi-recipe category.
  const groupedIds=new Set(Object.values(groups).filter(a=>a.length>=2).flat().map(r=>r.id));
  const singles=unstar.filter(r=>!groupedIds.has(r.id));
- if(singles.length){const h=document.createElement("div");h.className="group-title";h.textContent="OTHER RECIPES";box.appendChild(h);singles.forEach(r=>box.appendChild(recipeCard(r)))}
- const preferred=["Hario Switch","V60","Origami (cone)"];
+ const preferred=["V60","Hario Switch","Origami","AeroPress"];
  const names=Object.keys(groups).filter(g=>groups[g].length>=2).sort((a,b)=>{let ia=preferred.indexOf(a),ib=preferred.indexOf(b);if(ia<0)ia=99;if(ib<0)ib=99;return ia-ib||a.localeCompare(b)});
+ if(names.length){const h=document.createElement("div");h.className="group-title";h.textContent="OTHER RECIPES";box.appendChild(h)}
  names.forEach(g=>{let card=document.createElement("div");card.className="group-card";card.innerHTML=`<div><div class="group-name">${esc(groupLabel(g))}</div><div class="group-count">${groups[g].length} recipes</div></div><div class="group-arrow">›</div>`;card.onclick=()=>{activeGroup=g;renderLibrary()};box.appendChild(card)});
+ if(singles.length){singles.forEach(r=>box.appendChild(recipeCard(r)))}
 }
 
 let draggedId=null;
@@ -274,7 +293,7 @@ function openRecipe(id){
  current=recipes.find(r=>r.id===id);bodyPours=3;
  mode=current.defaultMode || (current.type==="iced" ? "water" : "coffee");
  $("library").classList.add("hidden");$("brew").classList.remove("hidden");
- $("brewName").textContent=current.name;$("brewMeta").textContent=current.brewer+" · Default 1:"+fmt(current.ratio);$("brewGrind").textContent="Grind: "+(current.grind||"Adjust to taste");
+ $("brewName").textContent=current.name;$("brewMeta").textContent=current.brewer+" · Default 1:"+fmt(current.ratio);$("brewGrind").textContent="Grind: "+(current.grind||"Adjust to taste")+(current.temp?" · Water: "+current.temp:"");
  $("coffee").value=current.coffee;$("water").value=current.water;$("ratio").value=current.ratio;$("ratioLabel").textContent="1:"+(+current.ratio).toFixed(2);
  $("kasuyaControls").classList.toggle("hidden",current.type!=="kasuya");
  $("icedControls").classList.toggle("hidden",current.type!=="iced");
@@ -348,6 +367,8 @@ function renderSteps(){
  if(current.footer) html+=`<div class="note" style="padding-top:12px">${esc(current.footer)}</div>`;
  if(current.youtube) html+=`<div class="source-note">Source: <a href="${esc(current.youtube)}" target="_blank" rel="noopener">YouTube ↗</a></div>`;
  $("steps").innerHTML=html;
+ const checks=current.check||["No strict finish-time target specified; follow the recipe timings and use flow consistency as your guide."];
+ $("brewCheck").innerHTML=checks.map((x,i)=>`<div class="brew-check-line">${i===0?'<strong>':' '}${esc(x)}${i===0?'</strong>':''}</div>`).join("");
 }
 function step(t,v,n,valve){let badge=valve?`<div class="valve ${valve}"><span class="valve-dot"></span>${valve.toUpperCase()} VALVE</div>`:"";return `<div class="step"><div class="time">${t}</div><div>${badge}<div class="target">${round(v,1)} g</div><div class="note">${esc(n||"")}</div></div></div>`}
 function time45(i){let sec=i*45,m=Math.floor(sec/60),s=String(sec%60).padStart(2,"0");return m+":"+s}
