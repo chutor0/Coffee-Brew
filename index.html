@@ -26,7 +26,7 @@ input[type=number],input[type=text]{width:100%;border:1px solid var(--line);back
 </head>
 <body><main class="app">
 <section id="library">
- <div class="top"><div><h1>My Coffee Recipes</h1><div class="sub">Your brew library</div></div><div class="top-tools"><span>v5.17</span><button class="brew-refresh" onclick="forceRefresh()" aria-label="Force refresh" title="Force refresh">↻</button></div></div>
+ <div class="top"><div><h1>My Coffee Recipes</h1><div class="sub">Your brew library</div></div><div class="top-tools"><span>v5.19</span><button class="brew-refresh" onclick="forceRefresh()" aria-label="Force refresh" title="Force refresh">↻</button></div></div>
  <div class="search-wrap"><input id="recipeSearch" class="search" type="search" placeholder="Search recipes…" autocomplete="off" autocapitalize="off"><button id="searchClear" class="search-clear hidden" type="button" aria-label="Clear search" title="Clear search">×</button></div>
  <div id="recipeList"></div>
  <div class="hint">★ Favourites stay on the main page. Brewers with multiple recipes are grouped automatically. Search checks recipe names and contents.</div>
@@ -42,7 +42,7 @@ input[type=number],input[type=text]{width:100%;border:1px solid var(--line);back
    <div><div class="label">Coffee (g)</div><input id="coffee" type="number" step=".1"></div>
    <div><div id="waterInputLabel" class="label">Water (g)</div><input id="water" type="number" step="1"></div>
   </div>
-  <div style="margin-top:14px"><div class="label">Water : coffee ratio</div><div id="ratioLabel" style="font-size:30px;font-weight:800;text-align:center;color:var(--blue);margin:2px 0 8px">1:16.67</div><input id="ratio" type="range" min="12" max="20" step="0.01" value="16.67"><div class="range-label"><span>1:12</span><span>1:20</span></div><div style="text-align:center;margin-top:10px"><button class="btn" onclick="resetRatio()">Reset to recipe ratio</button></div></div>
+  <div style="margin-top:14px"><div class="label">Brew ratio</div><div id="ratioLabel" style="font-size:30px;font-weight:800;text-align:center;color:var(--blue);margin:2px 0 8px">1:16.67</div><input id="ratio" type="range" min="12" max="20" step="0.01" value="16.67"><div class="range-label"><span id="ratioMinLabel">Stronger</span><span id="ratioOriginalLabel">Original</span><span id="ratioMaxLabel">Lighter</span></div><div style="text-align:center;margin-top:10px"><button class="btn" onclick="resetRatio()">Reset to recipe ratio</button></div></div>
  </div>
  <div id="icedControls" class="hidden">
   <div class="card">
@@ -82,23 +82,23 @@ input[type=number],input[type=text]{width:100%;border:1px solid var(--line);back
 
 <script>
 const defaults=[
- {id:"april",temp:"92°C",check:["Target finish: 2:20–3:00","Two 100g pours; keep the intended fast, even flow","If drawdown slows sharply near the end, reduce agitation or try coarser before changing the pour pattern"],name:"April Brewer · Base Recipe",brewer:"April Brewer",categories:["April Brewer"],grind:"Medium-fine",coffee:12,water:200,ratio:16.67,type:"fixed",
+ {id:"april",temp:"92°C",check:["Target finish: 2:20–3:00","Two 100g pours; keep the intended fast, even flow","If drawdown slows sharply near the end, reduce agitation or try coarser before changing the pour pattern"],name:"April Brewer · Base Recipe",brewer:"April Brewer",categories:["April Brewer"],grind:"Medium-fine",coffee:12,water:200,ratio:16.67,ratioMin:15,ratioMax:18,type:"fixed",
   steps:[{t:"0:00",f:.5,n:"Pour 40g circular + 60g centre"},{t:"0:30",f:1,n:"Pour 40g circular + 60g centre"}],
   footer:"92°C · Aim for roughly 2:20–3:00 total brew time"},
- {id:"hoffmann",temp:"Freshly boiled / very hot",check:["Target finish: around 3:00","Follow the timed pours rather than waiting for the bed to drain between each one","If the brewer progressively fills higher and the final drawdown drags well past target, try coarser or reduce agitation"],name:"James Hoffmann · 1-Cup V60",brewer:"V60",categories:["V60"],grind:"Medium-fine",coffee:18,water:300,ratio:16.67,type:"fixed",defaultMode:"water",youtube:"https://www.youtube.com/watch?v=1oB1oDrDkHM",
+ {id:"hoffmann",temp:"Freshly boiled / very hot",check:["Target finish: around 3:00","Follow the timed pours rather than waiting for the bed to drain between each one","If the brewer progressively fills higher and the final drawdown drags well past target, try coarser or reduce agitation"],name:"James Hoffmann · 1-Cup V60",brewer:"V60",categories:["V60"],grind:"Medium-fine",coffee:18,water:300,ratio:16.67,ratioMin:15,ratioMax:18.5,type:"fixed",defaultMode:"water",youtube:"https://www.youtube.com/watch?v=1oB1oDrDkHM",
   steps:[{t:"0:00",f:.2,n:"Bloom, then gently swirl"},{t:"0:45",f:.4,n:"Pour to target"},{t:"1:10",f:.6,n:"Pour to target"},{t:"1:30",f:.8,n:"Pour to target"},{t:"1:50",f:1,n:"Final pour"},{t:"2:00",f:1,n:"Gentle swirl and draw down"}],
   footer:"Hot/boiling water · Aim for ~3:00 total"},
- {id:"hoffmanniced",temp:"Freshly boiled",check:["Steep: at least 5:00 (about 4:00 for darker roasts)","After opening the valve, draw down fully onto the ice","For this immersion recipe, steep time is the main checkpoint; drawdown is less useful as a grind target than for V60"],name:"James Hoffmann · Iced Immersion",brewer:"Hario Switch / Clever Dripper",categories:["ICED"],grind:"Medium-fine",coffee:22.5,water:300,ratio:13.33,type:"iced",defaultMode:"water",youtube:"https://www.youtube.com/watch?v=8uGGeV8A-BM",
+ {id:"hoffmanniced",temp:"Freshly boiled",check:["Steep: at least 5:00 (about 4:00 for darker roasts)","After opening the valve, draw down fully onto the ice","For this immersion recipe, steep time is the main checkpoint; drawdown is less useful as a grind target than for V60"],name:"James Hoffmann · Iced Immersion",brewer:"Hario Switch / Clever Dripper",categories:["ICED"],grind:"Medium-fine",coffee:22.5,water:300,ratio:13.33,ratioMin:11.5,ratioMax:15.5,type:"iced",defaultMode:"water",youtube:"https://www.youtube.com/watch?v=8uGGeV8A-BM",
   icePct:34, hotWater:198, ice:102,
   footer:"Water first, then coffee · Stir thoroughly · Steep 5:00 (about 4:00 for darker roasts) · Open valve and draw down onto ice · Swirl to melt/chill, then serve over fresh ice"},
- {id:"hoffmannaero",temp:"Light ~99°C · Medium 90–95°C · Dark 85–90°C",check:["Steep to 2:00, swirl, then rest to 2:30","Press gently for about 30 seconds; target finish around 3:00–3:20","If pressing needs substantial force, grind coarser; do not use force to chase a fixed finish time"],name:"James Hoffmann · Ultimate AeroPress",brewer:"AeroPress",categories:["AeroPress"],grind:"Medium-fine",coffee:11,water:200,ratio:18.18,type:"fixed",youtube:"https://www.youtube.com/watch?v=j6VlT_jUVPc",
+ {id:"hoffmannaero",temp:"Light ~99°C · Medium 90–95°C · Dark 85–90°C",check:["Steep to 2:00, swirl, then rest to 2:30","Press gently for about 30 seconds; target finish around 3:00–3:20","If pressing needs substantial force, grind coarser; do not use force to chase a fixed finish time"],name:"James Hoffmann · Ultimate AeroPress",brewer:"AeroPress",categories:["AeroPress"],grind:"Medium-fine",coffee:11,water:200,ratio:18.18,ratioMin:16,ratioMax:20,type:"fixed",youtube:"https://www.youtube.com/watch?v=j6VlT_jUVPc",
   steps:[
    {t:"0:00",f:1,n:"Add all water, aiming to wet all the coffee; immediately insert plunger about 1 cm to create a vacuum"},
    {t:"2:00",f:1,n:"Gently swirl brewer"},
    {t:"2:30",f:1,n:"Press gently for about 30 seconds"}
   ],
   footer:"Light roast: ~99°C; medium roast: 90–95°C; dark roast: 85–90°C · Standard position · No rinse or preheat needed · Finish around 3:00–3:20"},
- {id:"doublebloom",temp:"92°C",check:["Each 50g bloom should drain after you open the valve before starting the next closed-valve bloom","Valve timing is the main checkpoint; there is no strict total finish time in the source version we saved","If an open-valve drain is unusually slow, try coarser or gentler agitation"],name:"Double Bloom · Hario Switch",brewer:"Hario Switch",categories:["Hario Switch"],grind:"Very coarse",coffee:18,water:300,ratio:16.67,type:"fixed",defaultMode:"water",
+ {id:"doublebloom",temp:"92°C",check:["Each 50g bloom should drain after you open the valve before starting the next closed-valve bloom","Valve timing is the main checkpoint; there is no strict total finish time in the source version we saved","If an open-valve drain is unusually slow, try coarser or gentler agitation"],name:"Double Bloom · Hario Switch",brewer:"Hario Switch",categories:["Hario Switch"],grind:"Very coarse",coffee:15,water:250,ratio:16.67,ratioMin:15,ratioMax:18,type:"fixed",defaultMode:"water",
   steps:[
    {t:"0:00",g:50,n:"First bloom to 50g",valve:"closed"},
    {t:"~0:35",g:50,n:"Let the first bloom drain",valve:"open"},
@@ -106,15 +106,15 @@ const defaults=[
    {t:"~1:10",g:100,n:"Let the second bloom drain",valve:"open"},
    {t:"Then",f:1,n:"Pour to final target with valve open",valve:"open"}
   ],
-  footer:"92°C · Two fixed 50g blooms"},
- {id:"chroniclerswitch",temp:"93°C",check:["OPEN for the first 160g; CLOSE at about 0:45 for the second 160g","OPEN again at 2:00","Target finish: about 2:45–3:15; if release drawdown is much slower, try coarser or less agitation"],name:"The Coffee Chronicler · Ultimate Hario Switch",brewer:"Hario Switch",categories:["Hario Switch"],grind:"Medium-fine",coffee:20,water:320,ratio:16,type:"fixed",defaultMode:"water",youtube:"https://www.youtube.com/watch?v=68ZOXrXbVHc",
+  footer:"92°C · Original 15g / 250g · Two fixed 50g blooms"},
+ {id:"chroniclerswitch",temp:"93°C",check:["OPEN for the first 160g; CLOSE at about 0:45 for the second 160g","OPEN again at 2:00","Target finish: about 2:45–3:15; if release drawdown is much slower, try coarser or less agitation"],name:"The Coffee Chronicler · Ultimate Hario Switch",brewer:"Hario Switch",categories:["Hario Switch"],grind:"Medium-fine",coffee:20,water:320,ratio:16,ratioMin:15,ratioMax:17.5,type:"fixed",defaultMode:"water",youtube:"https://www.youtube.com/watch?v=68ZOXrXbVHc",
   steps:[
    {t:"0:00",f:.5,n:"Pour first 50% of the water and let it percolate",valve:"open"},
    {t:"0:45",f:1,n:"Close valve, then pour the remaining 50%",valve:"closed"},
    {t:"2:00",f:1,n:"Release and let the brew drain",valve:"open"}
   ],
   footer:"93°C · Target finish ~2:45–3:15"},
- {id:"sherryswitch",temp:"90°C",check:["Keep valve OPEN through the 50g bloom and pour to 150g","CLOSE at 1:00; OPEN at 1:30","Target finish: about 1:45–2:00; a much longer release drawdown suggests going coarser"],name:"Sherry Hsu · Hario Switch",brewer:"Hario Switch",categories:["Hario Switch"],grind:"Medium-coarse",coffee:16,water:240,ratio:15,type:"fixed",defaultMode:"water",youtube:"https://www.youtube.com/watch?v=wCNxPYyGWoo&t=383s",
+ {id:"sherryswitch",temp:"90°C",check:["Keep valve OPEN through the 50g bloom and pour to 150g","CLOSE at 1:00; OPEN at 1:30","Target finish: about 1:45–2:00; a much longer release drawdown suggests going coarser"],name:"Sherry Hsu · Hario Switch",brewer:"Hario Switch",categories:["Hario Switch"],grind:"Medium-coarse",coffee:16,water:240,ratio:15,ratioMin:13.5,ratioMax:16.5,type:"fixed",defaultMode:"water",youtube:"https://www.youtube.com/watch?v=wCNxPYyGWoo&t=383s",
   steps:[
    {t:"0:00",g:50,n:"Bloom to 50g",valve:"open"},
    {t:"0:30",g:150,n:"Pour to 150g cumulative",valve:"open"},
@@ -122,21 +122,21 @@ const defaults=[
    {t:"1:30",f:1,n:"Open valve and drain",valve:"open"}
   ],
   footer:"90°C · Original recipe 16g / 240g (1:15) · Target finish ~1:45–2:00"},
- {id:"lance121",temp:"100°C",check:["Hold the bloom for the full 2:00 before the main pour","Target finish: around 3:50","Past roughly 4:40: try coarser. Before roughly 3:00: try finer. Keep the pour structure unchanged while dialing grind"],name:"Lance Hedrick · 1-2-1 Method",brewer:"V60",categories:["V60"],grind:"Medium-fine",coffee:18,water:306,ratio:17,type:"fixed",defaultMode:"water",
+ {id:"lance121",temp:"100°C",check:["Hold the bloom for the full 2:00 before the main pour","Target finish: around 3:50","Past roughly 4:40: try coarser. Before roughly 3:00: try finer. Keep the pour structure unchanged while dialing grind"],name:"Lance Hedrick · 1-2-1 Method",brewer:"V60",categories:["V60"],grind:"Medium-fine",coffee:18,water:306,ratio:17,ratioMin:15.5,ratioMax:18.5,type:"fixed",defaultMode:"water",
   steps:[
    {t:"0:00",g:54,n:"Bloom to 54g, then swirl vigorously to wet the whole bed"},
    {t:"2:00",f:1,n:"Pour steadily in a spiral to final target"},
    {t:"~2:45",f:1,n:"Give a gentle swirl and allow to draw down"}
   ],
   footer:"100°C for light roast · Long 2:00 bloom · Original 18g / 306g (1:17) · Target finish ~3:50"},
- {id:"dujianing",temp:"94°C",check:["This is intentionally a very fast recipe","Final pour begins around 0:56; target complete drawdown around 1:40–1:45","If it runs substantially longer, check grind and filter flow rather than extending the prescribed pauses"],name:"Du Jianing · 2019 WBrC Origami",brewer:"Origami · Wave filter",categories:["Origami"],grind:"Medium",coffee:16,water:240,ratio:15,type:"fixed",defaultMode:"water",
+ {id:"dujianing",temp:"94°C",check:["This is intentionally a very fast recipe","Final pour begins around 0:56; target complete drawdown around 1:40–1:45","If it runs substantially longer, check grind and filter flow rather than extending the prescribed pauses"],name:"Du Jianing · 2019 WBrC Origami",brewer:"Origami · Wave filter",categories:["Origami"],grind:"Medium",coffee:16,water:240,ratio:15,ratioMin:13.5,ratioMax:16.5,type:"fixed",defaultMode:"water",
   steps:[
    {t:"0:00",g:60,n:"Pour to 60g over about 10 seconds"},
    {t:"0:18",g:140,n:"Pour to 140g cumulative over about 20 seconds"},
    {t:"0:56",f:1,n:"Final pour to target at about 5g/s"}
   ],
   footer:"94°C · Kalita Wave / flat filter in Origami · Original 16g / 240g (1:15) · Fast drawdown, target ~1:45"},
- {id:"carlosmedina",temp:"91°C",check:["Five equal 50g pours at 30-second intervals","Target finish: about 2:40","Keep the equal-pour rhythm; if water accumulates progressively and drawdown runs long, try coarser before changing the schedule"],name:"Carlos Medina · 2023 WBrC Origami",brewer:"Origami · Cone filter",categories:["V60","Origami"],grind:"Medium-coarse",coffee:15.5,water:250,ratio:16.13,type:"fixed",defaultMode:"water",youtube:"https://www.youtube.com/watch?v=vvD5UY1yMhk",
+ {id:"carlosmedina",temp:"91°C",check:["Five equal 50g pours at 30-second intervals","Target finish: about 2:45","Keep the equal-pour rhythm; if water accumulates progressively and drawdown runs long, try coarser before changing the schedule"],name:"Carlos Medina · 2023 WBrC Origami",brewer:"Origami · Cone filter",categories:["V60","Origami"],grind:"Medium-coarse",coffee:15.5,water:250,ratio:16.13,ratioMin:14.5,ratioMax:17.5,type:"fixed",defaultMode:"water",youtube:"https://origami-kai.com/blogs/special-feature/world-brewers-cup2023-carlos-medina",
   steps:[
    {t:"0:00",g:50,n:"Pour 50g in a circular spiral"},
    {t:"0:30",g:100,n:"Pour to 100g cumulative"},
@@ -144,24 +144,24 @@ const defaults=[
    {t:"1:30",g:200,n:"Pour to 200g cumulative"},
    {t:"2:00",f:1,n:"Final pour to target"}
   ],
-  footer:"91°C · Cone filter · Five equal pours, 30 seconds apart · Original 15.5g / 250g · Target finish ~2:40"},
- {id:"timwendelboe",temp:"Boiling / ~96–100°C",check:["Steep for 60 seconds, with exactly 3 stirs before and 3 stirs after","Press steadily using body weight; typical total is about 1:30–1:50","If the press is unusually hard, try coarser; press resistance is more useful here than pour-over drawdown"],name:"Tim Wendelboe · AeroPress",brewer:"AeroPress",categories:["AeroPress"],grind:"Fine filter",coffee:14,water:200,ratio:14.29,type:"fixed",youtube:"https://www.youtube.com/watch?v=7JISZNixkeA",
+  footer:"91°C · Cone filter · Five equal pours, 30 seconds apart · Original 15.5g / 250g · Target finish ~2:45"},
+ {id:"timwendelboe",temp:"Boiling water",check:["Steep for 60 seconds, with exactly 3 stirs before and 3 stirs after","Press steadily using body weight; typical total is about 1:30–1:50","If the press is unusually hard, try coarser; press resistance is more useful here than pour-over drawdown"],name:"Tim Wendelboe · AeroPress",brewer:"AeroPress",categories:["AeroPress"],grind:"Fine filter",coffee:14,water:200,ratio:14.29,ratioMin:12.5,ratioMax:16,type:"fixed",youtube:"https://www.youtube.com/watch?v=7JISZNixkeA",
   steps:[
    {t:"0:00",f:1,n:"Pour all water, then stir 3 times front to back"},
    {t:"0:10",f:1,n:"Insert plunger slightly to stop the brew draining"},
    {t:"1:10",f:1,n:"Remove plunger and stir 3 times front to back"},
    {t:"1:15",f:1,n:"Replace plunger and press steadily using body weight"}
   ],
-  footer:"100°C for light roast · Rinse paper filter · Original 14g / 200g (1:14.3) · Press gently; do not force the last of the brew"},
- {id:"scottrao",temp:"97°C",check:["After the middle pour, wait until the slurry is about 70% drained before the final pour","Target finish: about 4:00–4:30 for this version","If flow starts normally but stalls late, reduce agitation or go coarser rather than changing Rao’s drainage cue"],name:"Scott Rao · V60",brewer:"V60",categories:["V60"],grind:"Medium-fine",coffee:20,water:330,ratio:16.5,type:"fixed",defaultMode:"water",
+  footer:"Boiling water · Rinse paper filter · Original 14g / 200g (1:14.3) · 60-second steep, then press"},
+ {id:"scottrao",temp:"97°C",check:["After the middle pour, wait until the slurry is about 70% drained before the final pour","Target finish: about 4:00–4:30 for this version","If flow starts normally but stalls late, reduce agitation or go coarser rather than changing Rao’s drainage cue"],name:"Scott Rao · V60",brewer:"V60",categories:["V60"],grind:"Medium-fine",coffee:20,water:330,ratio:16.5,ratioMin:15,ratioMax:18,type:"fixed",defaultMode:"water",
   steps:[
    {t:"0:00",g:60,n:"Bloom to 60g, then spin aggressively"},
    {t:"0:40",g:200,n:"Pour to 200g cumulative, then give a very gentle spin"},
    {t:"~1:30",f:1,n:"When slurry is about 70% drained, pour to final target and give another very gentle spin"}
   ],
   footer:"97°C · Low, steady pour · Original 20g / 330g · Target finish ~4:00–4:30"},
- {id:"kasuya",temp:"92°C",check:["Let each pulse almost completely pass through before the next pour","Target finish: about 3:15–3:30 for the classic five-pour version","If the bed is still high at the next scheduled pour, you are running slower than intended; try coarser or reduce agitation"],name:"Tetsu Kasuya · 4:6 Method",brewer:"V60",categories:["V60"],grind:"Medium-coarse",coffee:20,water:300,ratio:15,type:"kasuya",defaultMode:"water",footer:"First 40% controls flavour; remaining 60% controls body"},
- {id:"kasuya10",temp:"95–96°C",check:["Keep the small pours on their rapid cadence; the bed should not build into a deep pool","Target finish: around 3:00–3:30","Some late slowing is expected. If it stalls dramatically or water keeps accumulating, go coarser and keep agitation gentle"],name:"Tetsu Kasuya · 10-Pour V60",brewer:"V60",categories:["V60"],grind:"Super-coarse",coffee:20,water:300,ratio:15,type:"fixed",defaultMode:"water",youtube:"https://www.youtube.com/watch?v=1QLvuh2O7i8",
+ {id:"kasuya",temp:"92°C",check:["Let each pulse almost completely pass through before the next pour","Target finish: about 3:15–3:30 for the classic five-pour version","If the bed is still high at the next scheduled pour, you are running slower than intended; try coarser or reduce agitation"],name:"Tetsu Kasuya · 4:6 Method",brewer:"V60",categories:["V60"],grind:"Medium-coarse",coffee:20,water:300,ratio:15,ratioMin:13.5,ratioMax:16.5,type:"kasuya",defaultMode:"water",footer:"First 40% controls flavour; remaining 60% controls body"},
+ {id:"kasuya10",temp:"95–96°C",check:["Keep the small pours on their rapid cadence; the bed should not build into a deep pool","Target finish: around 3:00–3:30","Some late slowing is expected. If it stalls dramatically or water keeps accumulating, go coarser and keep agitation gentle"],name:"Tetsu Kasuya · 10-Pour V60",brewer:"V60",categories:["V60"],grind:"Super-coarse",coffee:20,water:300,ratio:15,ratioMin:13.5,ratioMax:16.5,type:"fixed",defaultMode:"water",youtube:"https://www.youtube.com/watch?v=1QLvuh2O7i8",
   steps:[
    {t:"0:00",f:.1,n:"Bloom · pour 30g"},
    {t:"0:30",f:.2,n:"Pour 2 · add 30g"},
@@ -175,21 +175,18 @@ const defaults=[
    {t:"2:30",f:1,n:"Final pour · add 30g"}
   ],
   footer:"95–96°C · Draw down from 2:45, usually finishing around 3:00–3:30"},
- {id:"tetsuiced46",temp:"90°C",check:["Five 30g hot-water pours over ice at 0:00, 0:40, 1:10, 1:40 and 2:10","Target finish: about 3:00","If water progressively accumulates and the brew runs long, try coarser or reduce agitation while keeping the pour cadence"],name:"Tetsu Kasuya · Iced 4:6",brewer:"V60",categories:["ICED"],grind:"Medium-coarse",coffee:20,water:230,ratio:11.5,type:"icedRecipe",defaultMode:"water",youtube:"https://www.youtube.com/watch?v=TfSBzFeoL4s",ice:80,icePct:34.7826,
-  icedSteps:[
-   {t:"Prep",kind:"ice",n:"Place ice in the server"},
-   {t:"0:00",hf:.2,n:"Pour 1, then swirl"},{t:"0:40",hf:.4,n:"Pour 2, then swirl"},{t:"1:10",hf:.6,n:"Pour 3"},{t:"1:40",hf:.8,n:"Pour 4"},{t:"2:10",hf:1,n:"Final hot-water pour"},{t:"2:40",kind:"action",label:"Swirl server",n:"Swirl until the ice is nearly melted; serve cold"}
-  ],footer:"Original: 20g coffee · 150g hot water · 80g ice · 90°C · Target finish ~3:00"},
- {id:"tccicedaero",temp:"Hot / just off boil",check:["Bloom with 80g hot water for 30 seconds, then add the remaining hot water","Plunge at 2:30 directly over the ice","After plunging, swirl the carafe and allow about a minute for further chilling/dilution before serving"],name:"The Coffee Chronicler · Japanese-Style Iced AeroPress",brewer:"AeroPress",categories:["ICED"],grind:"Medium-fine",coffee:27,water:400,ratio:14.81,type:"icedRecipe",defaultMode:"water",youtube:"https://coffeechronicler.com/aeropress-iced-coffee/",ice:160,icePct:40,
-  icedSteps:[{t:"Prep",kind:"ice",n:"Place ice in the serving carafe"},{t:"0:00",hg:80,n:"Bloom with hot water; stir to eliminate dry pockets"},{t:"0:30",hf:1,n:"Pour remaining hot water; stir briefly and insert plunger to create a seal"},{t:"2:30",kind:"action",label:"Plunge",n:"Press directly over the ice"},{t:"After",kind:"action",label:"Swirl",n:"Swirl carafe and let the remaining ice dilute for about 1 minute"}],footer:"Original: 27g coffee · 240g hot water · 160g ice · Japanese-style flash-chilled AeroPress"},
- {id:"japaneseicedv60",temp:"93–96°C",check:["Brew hot coffee directly onto ice; the ice is part of the total brew water","Target finish: roughly 2:30–3:30","If the V60 stalls late, try coarser or gentler agitation; if it races through, try finer"],name:"Classic Japanese · Iced V60",brewer:"V60",categories:["ICED"],grind:"Medium-fine",coffee:30,water:500,ratio:16.67,type:"icedRecipe",defaultMode:"water",ice:200,icePct:40,
-  icedSteps:[{t:"Prep",kind:"ice",n:"Place ice in the server"},{t:"0:00",hf:.2,n:"Bloom with about 20% of the hot water; ensure all grounds are wet"},{t:"~0:40",hf:.6,n:"Pour steadily to 60% of the hot-water target"},{t:"~1:30",hf:1,n:"Finish pouring to the full hot-water target"},{t:"Finish",kind:"action",label:"Swirl",n:"Swirl the server to melt/chill evenly, then serve"}],footer:"Starting framework: 30g coffee · 300g hot water · 200g ice · ~1:16.7 total water · Target ~2:30–3:30"},
- {id:"tetsuhybridiced",temp:"90–93°C",check:["Start with the valve OPEN and pour 50g for the percolation phase","At 0:40 CLOSE the valve, then pour to 150g hot water cumulative for immersion","At 1:30 OPEN the valve and drain onto the ice; if release stalls badly, try coarser or reduce agitation"],name:"Tetsu Kasuya · Hybrid Iced Switch",brewer:"Hario Switch",categories:["ICED"],grind:"Medium-fine",coffee:20,water:230,ratio:11.5,type:"icedRecipe",defaultMode:"water",youtube:"https://www.youtube.com/watch?v=v0CXzmw1TXg",ice:80,icePct:34.7826,
-  icedSteps:[{t:"Prep",kind:"ice",n:"Place ice in the server"},{t:"0:00",hg:50,n:"Pour to 50g hot water cumulative",valve:"open"},{t:"0:40",hf:1,n:"CLOSE switch and pour to 150g hot water cumulative",valve:"closed"},{t:"1:30",kind:"action",label:"OPEN valve",n:"Release and draw down onto the ice",valve:"open"}],footer:"Original: 20g coffee · 150g hot water · 80g ice · 90–93°C · 50g percolation + 100g immersion"},
- {id:"patrik2019",temp:"92°C",check:["50g spiral bloom, then a 100g centre pour at 0:30, then final 50g spiral pour at 1:20","Target finish: about 2:40–3:00","If drawdown runs well beyond 3:00, try coarser before changing the prescribed pour structure"],name:"Patrik Rolf · 2019 WBrC April Brewer",brewer:"April Brewer",categories:["April Brewer"],grind:"Coarse",coffee:12,water:200,ratio:16.67,type:"fixed",youtube:"https://www.aprilcoffeeroasters.com/blogs/news/world-brewers-cup-recipe-final-round-patrik-rolf",
-  steps:[{t:"0:00",g:50,n:"Pour to 50g in a spiral"},{t:"0:30",g:150,n:"Pour to 150g cumulative, concentrating the pour in the centre"},{t:"1:20",f:1,n:"Finish to target in a spiral"}],footer:"92°C · Original 12g / 200g · Target finish ~2:40–3:00 · 2019 World Brewers Cup final-round method"}
+ {id:"tetsuiced46",temp:"90°C",check:["Five 30g hot-water pours at 0:00, 0:40, 1:10, 1:40 and 2:10","Target finish: about 3:00","Published recipe: 150g hot water + 80g brew ice = 230g total brew water · app brew ratio 1:11.5"],name:"Tetsu Kasuya · Iced 4:6",brewer:"V60",categories:["ICED"],grind:"Slightly coarser than hot 4:6",coffee:20,water:150,ratio:11.5,ratioMin:10,ratioMax:13,type:"icedRecipe",defaultMode:"water",youtube:"https://www.youtube.com/watch?v=TfSBzFeoL4s",ice:80,iceToHot:0.5333333333,
+  icedSteps:[{t:"Prep",kind:"ice",n:"Place 80g ice in the server"},{t:"0:00",g:30,n:"Pour to 30g, then gently shake/swirl"},{t:"0:40",g:60,n:"Pour to 60g cumulative, then gently shake/swirl"},{t:"1:10",g:90,n:"Pour to 90g cumulative"},{t:"1:40",g:120,n:"Pour to 120g cumulative"},{t:"2:10",g:150,n:"Final pour to 150g cumulative"},{t:"~3:00",kind:"action",label:"Remove & swirl",n:"Remove dripper and swirl the server to integrate the chilled brew"}],footer:"SOURCE ORIGINAL · 20g coffee · 150g HOT water + 80g brew ice · app brew ratio 1:11.5 · 90°C · ~3:00"},
+ {id:"tccicedaero",temp:"Hot / just off boil",check:["Bloom with 80g hot water for 30 seconds, then pour to 240g hot water","Plunge at 2:30 directly over 160g ice","240g hot water + 160g brew ice = 400g total brew water · app brew ratio 1:14.8"],name:"The Coffee Chronicler · Japanese-Style Iced AeroPress",brewer:"AeroPress",categories:["ICED"],grind:"Medium-fine",coffee:27,water:240,ratio:14.81,ratioMin:13,ratioMax:17,type:"icedRecipe",defaultMode:"water",youtube:"https://coffeechronicler.com/aeropress-iced-coffee/",ice:160,iceToHot:0.6666666667,
+  icedSteps:[{t:"Prep",kind:"ice",n:"Place 160g ice in the serving carafe"},{t:"0:00",g:80,n:"Bloom with 80g hot water; stir to eliminate dry pockets"},{t:"0:30",g:240,n:"Pour to 240g hot water cumulative; stir briefly and insert plunger to create a seal"},{t:"2:30",kind:"action",label:"Plunge",n:"Press directly over the ice"},{t:"After",kind:"action",label:"Swirl",n:"Swirl carafe and let the remaining ice dilute for about 1 minute"}],footer:"SOURCE ORIGINAL · 27g coffee · 240g HOT water + 160g brew ice · total brew water 400g · app brew ratio 1:14.8"},
+ {id:"japaneseicedv60",temp:"100°C / freshly boiled",check:["Bloom to 50g, pour to 150g at 0:45, then to 250g at 1:30","Target finish: about 2:45","Replaces the earlier unsourced generic framework with a documented Japanese iced V60 recipe"],name:"James Hoffmann · Japanese Iced V60",brewer:"V60",categories:["ICED"],grind:"Medium-fine · finer than hot V60",coffee:25,water:250,ratio:16.6,ratioMin:14.5,ratioMax:18.5,type:"icedRecipe",defaultMode:"water",youtube:"https://gota.cafe/en/recipes/v60-02/v60-hoffmann-iced",ice:165,iceToHot:0.66,
+  icedSteps:[{t:"Prep",kind:"ice",n:"Place 165g ice in the server"},{t:"0:00",g:50,n:"Bloom to 50g"},{t:"0:45",g:150,n:"Pour to 150g cumulative"},{t:"1:30",g:250,n:"Pour to 250g cumulative"},{t:"~2:45",kind:"action",label:"Finish & swirl",n:"Remove dripper and swirl until evenly chilled"}],footer:"SOURCE ORIGINAL · 25g coffee · 250g HOT water + 165g brew ice · total brew water 415g · app brew ratio 1:16.6"},
+ {id:"tetsuhybridiced",temp:"90–93°C",check:["Start OPEN and pour 50g","At 0:40 CLOSE, then pour to 150g hot water cumulative","At 1:30 OPEN and drain onto 80g ice · 230g total brew water gives app brew ratio 1:11.5"],name:"Tetsu Kasuya · Hybrid Iced Switch",brewer:"Hario Switch",categories:["ICED"],grind:"Medium-fine",coffee:20,water:150,ratio:11.5,ratioMin:10,ratioMax:13,type:"icedRecipe",defaultMode:"water",youtube:"https://www.youtube.com/watch?v=v0CXzmw1TXg",ice:80,iceToHot:0.5333333333,
+  icedSteps:[{t:"Prep",kind:"ice",n:"Place 80g ice in the server"},{t:"0:00",g:50,n:"Pour to 50g hot water cumulative and lightly shake to wet evenly",valve:"open"},{t:"0:40",g:150,n:"CLOSE switch and pour to 150g hot water cumulative",valve:"closed"},{t:"1:30",kind:"action",label:"OPEN valve",n:"Release and draw down onto the ice while gently swirling",valve:"open"}],footer:"SOURCE ORIGINAL · 20g coffee · 150g HOT water + 80g brew ice · app brew ratio 1:11.5 · 90–93°C"},
+ {id:"patrik2019",temp:"92°C",check:["50g spiral pour, then add 100g in a spiral at 0:30, then add the final 50g in a spiral at 1:20","Target finish: about 2:45–3:00","If drawdown runs well beyond 3:00, try coarser before changing the prescribed pour structure"],name:"Patrik Rolf · 2019 WBrC April Brewer",brewer:"April Brewer",categories:["April Brewer"],grind:"Coarse",coffee:12,water:200,ratio:16.67,ratioMin:15,ratioMax:18,type:"fixed",youtube:"https://www.aprilcoffeeroasters.com/blogs/news/world-brewers-cup-recipe-final-round-patrik-rolf",
+  steps:[{t:"0:00",g:50,n:"Pour to 50g in a spiral"},{t:"0:30",g:150,n:"Add 100g in a spiral · 150g cumulative"},{t:"1:20",f:1,n:"Finish to target in a spiral"}],footer:"92°C · Original 12g / 200g · Target finish ~2:45–3:00 · 2019 World Brewers Cup final-round method"}
 ];
-let savedV6=JSON.parse(localStorage.getItem("coffeeRecipesV15")||localStorage.getItem("coffeeRecipesV14")||localStorage.getItem("coffeeRecipesV13")||localStorage.getItem("coffeeRecipesV12")||localStorage.getItem("coffeeRecipesV11")||localStorage.getItem("coffeeRecipesV10")||localStorage.getItem("coffeeRecipesV9")||"null");
+let savedV6=JSON.parse(localStorage.getItem("coffeeRecipesV16")||localStorage.getItem("coffeeRecipesV15")||localStorage.getItem("coffeeRecipesV14")||localStorage.getItem("coffeeRecipesV13")||localStorage.getItem("coffeeRecipesV12")||localStorage.getItem("coffeeRecipesV11")||localStorage.getItem("coffeeRecipesV10")||localStorage.getItem("coffeeRecipesV9")||"null");
 let oldV5=JSON.parse(localStorage.getItem("coffeeRecipesV8")||localStorage.getItem("coffeeRecipesV7")||localStorage.getItem("coffeeRecipesV6")||localStorage.getItem("coffeeRecipesV5")||"null");
 let recipes=savedV6 || (oldV5 ? [...oldV5, ...defaults.filter(d=>!oldV5.some(r=>r.id===d.id))] : [...defaults]);
 recipes=[...recipes, ...defaults.filter(d=>!recipes.some(r=>r.id===d.id))];
@@ -216,7 +213,7 @@ function orderIds(){
 }
 function ordered(){let base=orderIds().map(id=>recipes.find(r=>r.id===id)).filter(Boolean);return [...base.filter(r=>starred.includes(r.id)),...base.filter(r=>!starred.includes(r.id))]}
 function save(){
- localStorage.setItem("coffeeRecipesV15",JSON.stringify(recipes));
+ localStorage.setItem("coffeeRecipesV16",JSON.stringify(recipes));
  if(customOrder) localStorage.setItem("coffeeOrderV8",JSON.stringify(customOrder));
  localStorage.setItem("coffeeStarredV2",JSON.stringify(starred));
 }
@@ -310,8 +307,10 @@ function openRecipe(id){
  mode=current.defaultMode || ((current.type==="iced" || current.type==="icedRecipe") ? "water" : "coffee");
  $("library").classList.add("hidden");$("brew").classList.remove("hidden");
  $("brewName").textContent=current.name;$("brewMeta").textContent=current.brewer+" · Default 1:"+fmt(current.ratio);$("brewGrind").textContent="Grind: "+(current.grind||"Adjust to taste")+(current.temp?" · Water: "+current.temp:"");
- $("waterInputLabel").textContent=(current.type==="iced" || current.type==="icedRecipe")?"Final brew water (g)":"Water (g)";
- $("coffee").value=current.coffee;$("water").value=current.water;$("ratio").value=current.ratio;$("ratioLabel").textContent="1:"+(+current.ratio).toFixed(2);
+ $("waterInputLabel").textContent=current.type==="icedRecipe"?"Hot water (g)":(current.type==="iced"?"Final brew water (g)":"Water (g)");
+ $("coffee").value=current.coffee;$("water").value=current.water;
+ const rmin=current.ratioMin ?? Math.max(5,current.ratio-2); const rmax=current.ratioMax ?? current.ratio+2; $("ratio").min=rmin; $("ratio").max=rmax; $("ratioMinLabel").textContent="Stronger · 1:"+fmt(rmin); $("ratioOriginalLabel").textContent="Original · 1:"+fmt(current.ratio); $("ratioMaxLabel").textContent="Lighter · 1:"+fmt(rmax);
+ $("ratio").value=current.ratio;$("ratioLabel").textContent="1:"+(+current.ratio).toFixed(2);
  $("kasuyaControls").classList.toggle("hidden",current.type!=="kasuya");
  $("icedControls").classList.toggle("hidden",current.type!=="iced");
  if(current.type==="iced"){
@@ -327,7 +326,7 @@ function showLibrary(){$("brew").classList.add("hidden");$("library").classList.
 function setMode(m){mode=m;updateMode();recalc()}
 function updateMode(){
  if(current && (current.type==="iced" || current.type==="icedRecipe")){
-   $("coffeeMode").textContent="Coffee"; $("waterMode").textContent="Final brew water";
+   $("coffeeMode").textContent="Coffee"; $("waterMode").textContent=current.type==="icedRecipe"?"Hot water":"Final brew water";
    $("coffeeMode").classList.toggle("active",mode==="coffee"); $("waterMode").classList.toggle("active",mode==="water");
    $("coffee").disabled=mode==="water"; $("water").disabled=mode==="coffee";
  } else {
@@ -338,22 +337,19 @@ function updateMode(){
 }
 function recalc(source){
  let ratio=+$("ratio").value||current.ratio;
- if(current.type==="iced" || current.type==="icedRecipe"){
-   ratio=+$("ratio").value||current.ratio;
-   $("ratioLabel").textContent="1:"+ratio.toFixed(2);
-   let pct=current.type==="icedRecipe" ? (current.icePct||0)/100 : (+$("icePct").value||34)/100;
-   let ice=current.type==="icedRecipe" ? (+$("water").value||current.water)*pct : (+$("ice").value||0);
-   let total=+$("water").value||0, coffee=+$("coffee").value||0;
-   if(source==="coffee" || (!source && mode==="coffee")){
-     total=coffee*ratio; ice=total*pct;
-   } else if(source==="ice" && current.type==="iced"){
-     total=ice/pct; coffee=total/ratio;
-   } else {
-     coffee=total/ratio; ice=total*pct;
-   }
-   $("water").value=round(total,1);
-   $("coffee").value=round(coffee,1);
-   $("ice").value=round(ice,1);
+ if(current.type==="icedRecipe"){
+   ratio=+$("ratio").value||current.ratio; $("ratioLabel").textContent="1:"+ratio.toFixed(2);
+   let hot=+$("water").value||0, coffee=+$("coffee").value||0;
+   const iceToHot=(current.iceToHot!=null?current.iceToHot:(current.ice/current.water));
+   if(source==="coffee" || (!source && mode==="coffee")){ const total=coffee*ratio; hot=total/(1+iceToHot); }
+   else { const total=hot*(1+iceToHot); coffee=total/ratio; }
+   const ice=hot*iceToHot;
+   $("water").value=round(hot,1); $("coffee").value=round(coffee,1); $("ice").value=round(ice,1);
+ } else if(current.type==="iced"){
+   ratio=+$("ratio").value||current.ratio; $("ratioLabel").textContent="1:"+ratio.toFixed(2);
+   let pct=(+$("icePct").value||34)/100, ice=+$("ice").value||0, total=+$("water").value||0, coffee=+$("coffee").value||0;
+   if(source==="coffee" || (!source && mode==="coffee")){total=coffee*ratio;ice=total*pct;} else if(source==="ice"){total=ice/pct;coffee=total/ratio;} else {coffee=total/ratio;ice=total*pct;}
+   $("water").value=round(total,1); $("coffee").value=round(coffee,1); $("ice").value=round(ice,1);
  } else if(mode==="coffee") $("water").value=round((+$("coffee").value||0)*ratio,1);
  else $("coffee").value=round((+$("water").value||0)/ratio,1);
  renderSteps();
@@ -371,20 +367,14 @@ function resetIcePct(){
 function renderSteps(){
  let W=+$("water").value||0, html="";
  if(current.type==="icedRecipe"){
-   let ice=+$("ice").value||0, hot=Math.max(0,W-ice);
-   let coffee=+$("coffee").value||0, finalRatio=coffee?W/coffee:0, hotRatio=coffee?hot/coffee:0;
-   html+=`<div class="note" style="padding:0 0 14px;font-size:16px;line-height:1.55"><strong>Hot water: ${round(hot,1)} g · Brew ice: ${round(ice,1)} g</strong><br>Final brew water: ${round(W,1)} g · Final ratio: 1:${fmt(finalRatio)}<br>Hot-water brew ratio: 1:${fmt(hotRatio)} <span style="opacity:.72">(before ice dilution)</span></div>`;
-   (current.icedSteps||[]).forEach(st=>{
-     if(st.kind==="ice") html+=step(st.t,ice,st.n,st.valve);
-     else if(st.kind==="action") html+=`<div class="step"><div class="time">${esc(st.t)}</div><div><div class="target">${esc(st.label||"Action")}</div><div class="note">${st.valve?valveBadge(st.valve):""}${esc(st.n||"")}</div></div></div>`;
-     else {
-       let target=st.hg!=null ? hot*(st.hg/((current.water||W)*(1-(current.icePct||0)/100))) : hot*(st.hf||0);
-       html+=step(st.t,target,st.n,st.valve);
-     }
-   });
+   let hot=W, ice=+$("ice").value||0, coffee=+$("coffee").value||0, hotRatio=coffee?hot/coffee:0, total=hot+ice, finalRatio=coffee?total/coffee:0;
+   html+=`<div class="note" style="padding:0 0 14px;font-size:16px;line-height:1.55"><strong style="font-size:18px">Brew ratio: 1:${fmt(finalRatio)}</strong><br>Hot water: ${round(hot,1)} g · Brew ice: ${round(ice,1)} g<br>Total brew water: ${round(total,1)} g · <span style="font-size:13px">Hot-water ratio: 1:${fmt(hotRatio)}</span></div>`;
+   const scale=hot/(current.water||hot);
+   (current.icedSteps||[]).forEach(st=>{ if(st.kind==="ice") html+=step(st.t,ice,st.n,st.valve); else if(st.kind==="action") html+=`<div class="step"><div class="time">${esc(st.t)}</div><div><div class="target">${esc(st.label||"Action")}</div><div class="note">${st.valve?valveBadge(st.valve):""}${esc(st.n||"")}</div></div></div>`; else html+=step(st.t,st.g!=null?st.g*scale:hot*(st.hf||0),st.n,st.valve); });
  } else if(current.type==="iced"){
    let ice=+$("ice").value||0, hot=Math.max(0,W-ice);
-   html+=`<div class="note" style="padding:0 0 12px;font-size:16px"><strong>Hot water: ${round(hot,1)} g · Brew ice: ${round(ice,1)} g</strong></div>`;
+   let coffee=+$("coffee").value||0, finalRatio=coffee?W/coffee:0;
+   html+=`<div class="note" style="padding:0 0 12px;font-size:16px;line-height:1.55"><strong style="font-size:18px">Brew ratio: 1:${fmt(finalRatio)}</strong><br>Hot water: ${round(hot,1)} g · Brew ice: ${round(ice,1)} g<br>Total brew water: ${round(W,1)} g</div>`;
    html+=step("Prep",hot,"Hot water into brewer first · valve closed");
    html+=step("Then",+$("coffee").value||0,"Add ground coffee (g) and stir thoroughly");
    html+=`<div class="step"><div class="time">4:00</div><div><div class="target">${round(ice,1)} g ice</div><div class="note">Weigh ice into serving carafe</div></div></div>`;
