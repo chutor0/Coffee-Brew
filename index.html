@@ -26,7 +26,7 @@ input[type=number],input[type=text]{width:100%;border:1px solid var(--line);back
 </head>
 <body><main class="app">
 <section id="library">
- <div class="top"><div><h1>My Coffee Recipes</h1><div class="sub">Your brew library</div></div><div class="top-tools"><span>v5.16</span><button class="brew-refresh" onclick="forceRefresh()" aria-label="Force refresh" title="Force refresh">↻</button></div></div>
+ <div class="top"><div><h1>My Coffee Recipes</h1><div class="sub">Your brew library</div></div><div class="top-tools"><span>v5.17</span><button class="brew-refresh" onclick="forceRefresh()" aria-label="Force refresh" title="Force refresh">↻</button></div></div>
  <div class="search-wrap"><input id="recipeSearch" class="search" type="search" placeholder="Search recipes…" autocomplete="off" autocapitalize="off"><button id="searchClear" class="search-clear hidden" type="button" aria-label="Clear search" title="Clear search">×</button></div>
  <div id="recipeList"></div>
  <div class="hint">★ Favourites stay on the main page. Brewers with multiple recipes are grouped automatically. Search checks recipe names and contents.</div>
@@ -40,7 +40,7 @@ input[type=number],input[type=text]{width:100%;border:1px solid var(--line);back
   <div class="segment" style="margin-bottom:12px"><button id="coffeeMode" onclick="setMode('coffee')">Coffee</button><button id="waterMode" onclick="setMode('water')">Water</button></div>
   <div class="row">
    <div><div class="label">Coffee (g)</div><input id="coffee" type="number" step=".1"></div>
-   <div><div class="label">Water (g)</div><input id="water" type="number" step="1"></div>
+   <div><div id="waterInputLabel" class="label">Water (g)</div><input id="water" type="number" step="1"></div>
   </div>
   <div style="margin-top:14px"><div class="label">Water : coffee ratio</div><div id="ratioLabel" style="font-size:30px;font-weight:800;text-align:center;color:var(--blue);margin:2px 0 8px">1:16.67</div><input id="ratio" type="range" min="12" max="20" step="0.01" value="16.67"><div class="range-label"><span>1:12</span><span>1:20</span></div><div style="text-align:center;margin-top:10px"><button class="btn" onclick="resetRatio()">Reset to recipe ratio</button></div></div>
  </div>
@@ -310,10 +310,11 @@ function openRecipe(id){
  mode=current.defaultMode || ((current.type==="iced" || current.type==="icedRecipe") ? "water" : "coffee");
  $("library").classList.add("hidden");$("brew").classList.remove("hidden");
  $("brewName").textContent=current.name;$("brewMeta").textContent=current.brewer+" · Default 1:"+fmt(current.ratio);$("brewGrind").textContent="Grind: "+(current.grind||"Adjust to taste")+(current.temp?" · Water: "+current.temp:"");
+ $("waterInputLabel").textContent=(current.type==="iced" || current.type==="icedRecipe")?"Final brew water (g)":"Water (g)";
  $("coffee").value=current.coffee;$("water").value=current.water;$("ratio").value=current.ratio;$("ratioLabel").textContent="1:"+(+current.ratio).toFixed(2);
  $("kasuyaControls").classList.toggle("hidden",current.type!=="kasuya");
- $("icedControls").classList.toggle("hidden",!(current.type==="iced" || current.type==="icedRecipe"));
- if(current.type==="iced" || current.type==="icedRecipe"){
+ $("icedControls").classList.toggle("hidden",current.type!=="iced");
+ if(current.type==="iced"){
    $("ice").value=current.ice;
    $("icePct").value=current.icePct;
    $("icePctLabel").textContent=(+current.icePct).toFixed(2)+"%";
@@ -325,8 +326,8 @@ function openRecipe(id){
 function showLibrary(){$("brew").classList.add("hidden");$("library").classList.remove("hidden");renderLibrary()}
 function setMode(m){mode=m;updateMode();recalc()}
 function updateMode(){
- if(current && current.type==="iced"){
-   $("coffeeMode").textContent="Coffee"; $("waterMode").textContent="Total water";
+ if(current && (current.type==="iced" || current.type==="icedRecipe")){
+   $("coffeeMode").textContent="Coffee"; $("waterMode").textContent="Final brew water";
    $("coffeeMode").classList.toggle("active",mode==="coffee"); $("waterMode").classList.toggle("active",mode==="water");
    $("coffee").disabled=mode==="water"; $("water").disabled=mode==="coffee";
  } else {
@@ -340,11 +341,12 @@ function recalc(source){
  if(current.type==="iced" || current.type==="icedRecipe"){
    ratio=+$("ratio").value||current.ratio;
    $("ratioLabel").textContent="1:"+ratio.toFixed(2);
-   let pct=(+$("icePct").value||34)/100;
-   let ice=+$("ice").value||0, total=+$("water").value||0, coffee=+$("coffee").value||0;
+   let pct=current.type==="icedRecipe" ? (current.icePct||0)/100 : (+$("icePct").value||34)/100;
+   let ice=current.type==="icedRecipe" ? (+$("water").value||current.water)*pct : (+$("ice").value||0);
+   let total=+$("water").value||0, coffee=+$("coffee").value||0;
    if(source==="coffee" || (!source && mode==="coffee")){
      total=coffee*ratio; ice=total*pct;
-   } else if(source==="ice"){
+   } else if(source==="ice" && current.type==="iced"){
      total=ice/pct; coffee=total/ratio;
    } else {
      coffee=total/ratio; ice=total*pct;
@@ -370,7 +372,8 @@ function renderSteps(){
  let W=+$("water").value||0, html="";
  if(current.type==="icedRecipe"){
    let ice=+$("ice").value||0, hot=Math.max(0,W-ice);
-   html+=`<div class="note" style="padding:0 0 12px;font-size:16px"><strong>Hot water: ${round(hot,1)} g · Brew ice: ${round(ice,1)} g</strong></div>`;
+   let coffee=+$("coffee").value||0, finalRatio=coffee?W/coffee:0, hotRatio=coffee?hot/coffee:0;
+   html+=`<div class="note" style="padding:0 0 14px;font-size:16px;line-height:1.55"><strong>Hot water: ${round(hot,1)} g · Brew ice: ${round(ice,1)} g</strong><br>Final brew water: ${round(W,1)} g · Final ratio: 1:${fmt(finalRatio)}<br>Hot-water brew ratio: 1:${fmt(hotRatio)} <span style="opacity:.72">(before ice dilution)</span></div>`;
    (current.icedSteps||[]).forEach(st=>{
      if(st.kind==="ice") html+=step(st.t,ice,st.n,st.valve);
      else if(st.kind==="action") html+=`<div class="step"><div class="time">${esc(st.t)}</div><div><div class="target">${esc(st.label||"Action")}</div><div class="note">${st.valve?valveBadge(st.valve):""}${esc(st.n||"")}</div></div></div>`;
