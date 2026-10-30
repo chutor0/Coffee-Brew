@@ -26,7 +26,7 @@ input[type=number],input[type=text]{width:100%;border:1px solid var(--line);back
 </head>
 <body><main class="app">
 <section id="library">
- <div class="top"><div><h1>My Coffee Recipes</h1><div class="sub">Your brew library</div></div><div class="top-tools"><span>v5.14</span><button class="brew-refresh" onclick="forceRefresh()" aria-label="Force refresh" title="Force refresh">↻</button></div></div>
+ <div class="top"><div><h1>My Coffee Recipes</h1><div class="sub">Your brew library</div></div><div class="top-tools"><span>v5.15</span><button class="brew-refresh" onclick="forceRefresh()" aria-label="Force refresh" title="Force refresh">↻</button></div></div>
  <div class="search-wrap"><input id="recipeSearch" class="search" type="search" placeholder="Search recipes…" autocomplete="off" autocapitalize="off"><button id="searchClear" class="search-clear hidden" type="button" aria-label="Clear search" title="Clear search">×</button></div>
  <div id="recipeList"></div>
  <div class="hint">★ Favourites stay on the main page. Brewers with multiple recipes are grouped automatically. Search checks recipe names and contents.</div>
@@ -88,7 +88,7 @@ const defaults=[
  {id:"hoffmann",temp:"Freshly boiled / very hot",check:["Target finish: around 3:00","Follow the timed pours rather than waiting for the bed to drain between each one","If the brewer progressively fills higher and the final drawdown drags well past target, try coarser or reduce agitation"],name:"James Hoffmann · 1-Cup V60",brewer:"V60",categories:["V60"],grind:"Medium-fine",coffee:18,water:300,ratio:16.67,type:"fixed",defaultMode:"water",youtube:"https://www.youtube.com/watch?v=1oB1oDrDkHM",
   steps:[{t:"0:00",f:.2,n:"Bloom, then gently swirl"},{t:"0:45",f:.4,n:"Pour to target"},{t:"1:10",f:.6,n:"Pour to target"},{t:"1:30",f:.8,n:"Pour to target"},{t:"1:50",f:1,n:"Final pour"},{t:"2:00",f:1,n:"Gentle swirl and draw down"}],
   footer:"Hot/boiling water · Aim for ~3:00 total"},
- {id:"hoffmanniced",temp:"Freshly boiled",check:["Steep: at least 5:00 (about 4:00 for darker roasts)","After opening the valve, draw down fully onto the ice","For this immersion recipe, steep time is the main checkpoint; drawdown is less useful as a grind target than for V60"],name:"James Hoffmann · Iced Immersion",brewer:"Hario Switch / Clever Dripper",categories:["Hario Switch","Clever Dripper"],grind:"Medium-fine",coffee:22.5,water:300,ratio:13.33,type:"iced",defaultMode:"water",youtube:"https://www.youtube.com/watch?v=8uGGeV8A-BM",
+ {id:"hoffmanniced",temp:"Freshly boiled",check:["Steep: at least 5:00 (about 4:00 for darker roasts)","After opening the valve, draw down fully onto the ice","For this immersion recipe, steep time is the main checkpoint; drawdown is less useful as a grind target than for V60"],name:"James Hoffmann · Iced Immersion",brewer:"Hario Switch / Clever Dripper",categories:["ICED"],grind:"Medium-fine",coffee:22.5,water:300,ratio:13.33,type:"iced",defaultMode:"water",youtube:"https://www.youtube.com/watch?v=8uGGeV8A-BM",
   icePct:34, hotWater:198, ice:102,
   footer:"Water first, then coffee · Stir thoroughly · Steep 5:00 (about 4:00 for darker roasts) · Open valve and draw down onto ice · Swirl to melt/chill, then serve over fresh ice"},
  {id:"hoffmannaero",temp:"Light ~99°C · Medium 90–95°C · Dark 85–90°C",check:["Steep to 2:00, swirl, then rest to 2:30","Press gently for about 30 seconds; target finish around 3:00–3:20","If pressing needs substantial force, grind coarser; do not use force to chase a fixed finish time"],name:"James Hoffmann · Ultimate AeroPress",brewer:"AeroPress",categories:["AeroPress"],grind:"Medium-fine",coffee:11,water:200,ratio:18.18,type:"fixed",youtube:"https://www.youtube.com/watch?v=j6VlT_jUVPc",
@@ -174,9 +174,22 @@ const defaults=[
    {t:"2:15",f:.9,n:"Pour 9 · add 30g"},
    {t:"2:30",f:1,n:"Final pour · add 30g"}
   ],
-  footer:"95–96°C · Draw down from 2:45, usually finishing around 3:00–3:30"}
+  footer:"95–96°C · Draw down from 2:45, usually finishing around 3:00–3:30"},
+ {id:"tetsuiced46",temp:"90°C",check:["Five 30g hot-water pours over ice at 0:00, 0:40, 1:10, 1:40 and 2:10","Target finish: about 3:00","If water progressively accumulates and the brew runs long, try coarser or reduce agitation while keeping the pour cadence"],name:"Tetsu Kasuya · Iced 4:6",brewer:"V60",categories:["ICED"],grind:"Medium-coarse",coffee:20,water:230,ratio:11.5,type:"icedRecipe",defaultMode:"water",youtube:"https://www.youtube.com/watch?v=ewqza63GXh0",icePct:34.7826,
+  icedSteps:[
+   {t:"Prep",kind:"ice",n:"Place ice in the server"},
+   {t:"0:00",hf:.2,n:"Pour 1, then swirl"},{t:"0:40",hf:.4,n:"Pour 2, then swirl"},{t:"1:10",hf:.6,n:"Pour 3"},{t:"1:40",hf:.8,n:"Pour 4"},{t:"2:10",hf:1,n:"Final hot-water pour"},{t:"2:40",kind:"action",label:"Swirl server",n:"Swirl until the ice is nearly melted; serve cold"}
+  ],footer:"Original: 20g coffee · 150g hot water · 80g ice · 90°C · Target finish ~3:00"},
+ {id:"tccicedaero",temp:"Hot / just off boil",check:["Bloom with 80g hot water for 30 seconds, then add the remaining hot water","Plunge at 2:30 directly over the ice","After plunging, swirl the carafe and allow about a minute for further chilling/dilution before serving"],name:"The Coffee Chronicler · Japanese-Style Iced AeroPress",brewer:"AeroPress",categories:["ICED"],grind:"Medium-fine",coffee:27,water:400,ratio:14.81,type:"icedRecipe",defaultMode:"water",youtube:"https://coffeechronicler.com/aeropress-iced-coffee/",icePct:40,
+  icedSteps:[{t:"Prep",kind:"ice",n:"Place ice in the serving carafe"},{t:"0:00",hg:80,n:"Bloom with hot water; stir to eliminate dry pockets"},{t:"0:30",hf:1,n:"Pour remaining hot water; stir briefly and insert plunger to create a seal"},{t:"2:30",kind:"action",label:"Plunge",n:"Press directly over the ice"},{t:"After",kind:"action",label:"Swirl",n:"Swirl carafe and let the remaining ice dilute for about 1 minute"}],footer:"Original: 27g coffee · 240g hot water · 160g ice · Japanese-style flash-chilled AeroPress"},
+ {id:"japaneseicedv60",temp:"93–96°C",check:["Brew hot coffee directly onto ice; the ice is part of the total brew water","Target finish: roughly 2:30–3:30","If the V60 stalls late, try coarser or gentler agitation; if it races through, try finer"],name:"Classic Japanese · Iced V60",brewer:"V60",categories:["ICED"],grind:"Medium-fine",coffee:30,water:500,ratio:16.67,type:"icedRecipe",defaultMode:"water",icePct:40,
+  icedSteps:[{t:"Prep",kind:"ice",n:"Place ice in the server"},{t:"0:00",hf:.2,n:"Bloom with about 20% of the hot water; ensure all grounds are wet"},{t:"~0:40",hf:.6,n:"Pour steadily to 60% of the hot-water target"},{t:"~1:30",hf:1,n:"Finish pouring to the full hot-water target"},{t:"Finish",kind:"action",label:"Swirl",n:"Swirl the server to melt/chill evenly, then serve"}],footer:"Starting framework: 30g coffee · 300g hot water · 200g ice · ~1:16.7 total water · Target ~2:30–3:30"},
+ {id:"tetsuhybridiced",temp:"93°C",check:["First 70g is percolation with the valve OPEN; close at 1:40 for the final 70g immersion","OPEN at 2:10 and drain onto the ice","Aim for the drawdown to finish around 3:00–3:30; if release stalls badly, try coarser or reduce agitation"],name:"Tetsu Kasuya · Hybrid Iced Switch",brewer:"Hario Switch",categories:["ICED"],grind:"Medium-fine",coffee:20,water:220,ratio:11,type:"icedRecipe",defaultMode:"water",icePct:36.3636,
+  icedSteps:[{t:"Prep",kind:"ice",n:"Place ice in the server"},{t:"0:00",hg:30,n:"Bloom and shake gently to wet the bed",valve:"open"},{t:"0:45",hg:70,n:"Pour to 70g hot water cumulative",valve:"open"},{t:"1:40",hf:1,n:"CLOSE switch and pour remaining hot water",valve:"closed"},{t:"2:10",kind:"action",label:"OPEN valve",n:"Release and draw down onto the ice",valve:"open"}],footer:"Original: 20g coffee · 140g hot water · 80g ice · 93°C · 70g percolation + 70g immersion"},
+ {id:"patrik2019",temp:"92°C",check:["50g spiral bloom, then a 100g centre pour at 0:30, then final 50g spiral pour at 1:20","Target finish: about 2:40–3:00","If drawdown runs well beyond 3:00, try coarser before changing the prescribed pour structure"],name:"Patrik Rolf · 2019 WBrC April Brewer",brewer:"April Brewer",categories:["April Brewer"],grind:"Coarse",coffee:12,water:200,ratio:16.67,type:"fixed",youtube:"https://www.aprilcoffeeroasters.com/blogs/news/world-brewers-cup-recipe-final-round-patrik-rolf",
+  steps:[{t:"0:00",g:50,n:"Pour to 50g in a spiral"},{t:"0:30",g:150,n:"Pour to 150g cumulative, concentrating the pour in the centre"},{t:"1:20",f:1,n:"Finish to target in a spiral"}],footer:"92°C · Original 12g / 200g · Target finish ~2:40–3:00 · 2019 World Brewers Cup final-round method"}
 ];
-let savedV6=JSON.parse(localStorage.getItem("coffeeRecipesV13")||localStorage.getItem("coffeeRecipesV12")||localStorage.getItem("coffeeRecipesV11")||localStorage.getItem("coffeeRecipesV10")||localStorage.getItem("coffeeRecipesV9")||"null");
+let savedV6=JSON.parse(localStorage.getItem("coffeeRecipesV14")||localStorage.getItem("coffeeRecipesV13")||localStorage.getItem("coffeeRecipesV12")||localStorage.getItem("coffeeRecipesV11")||localStorage.getItem("coffeeRecipesV10")||localStorage.getItem("coffeeRecipesV9")||"null");
 let oldV5=JSON.parse(localStorage.getItem("coffeeRecipesV8")||localStorage.getItem("coffeeRecipesV7")||localStorage.getItem("coffeeRecipesV6")||localStorage.getItem("coffeeRecipesV5")||"null");
 let recipes=savedV6 || (oldV5 ? [...oldV5, ...defaults.filter(d=>!oldV5.some(r=>r.id===d.id))] : [...defaults]);
 recipes=[...recipes, ...defaults.filter(d=>!recipes.some(r=>r.id===d.id))];
@@ -203,7 +216,7 @@ function orderIds(){
 }
 function ordered(){let base=orderIds().map(id=>recipes.find(r=>r.id===id)).filter(Boolean);return [...base.filter(r=>starred.includes(r.id)),...base.filter(r=>!starred.includes(r.id))]}
 function save(){
- localStorage.setItem("coffeeRecipesV13",JSON.stringify(recipes));
+ localStorage.setItem("coffeeRecipesV14",JSON.stringify(recipes));
  if(customOrder) localStorage.setItem("coffeeOrderV8",JSON.stringify(customOrder));
  localStorage.setItem("coffeeStarredV2",JSON.stringify(starred));
 }
@@ -234,8 +247,11 @@ function renderLibrary(){
  // Show singletons directly only when the recipe is not part of any multi-recipe category.
  const groupedIds=new Set(Object.values(groups).filter(a=>a.length>=2).flat().map(r=>r.id));
  const singles=unstar.filter(r=>!groupedIds.has(r.id));
- const preferred=["V60","Hario Switch","Origami","AeroPress"];
- const names=Object.keys(groups).filter(g=>groups[g].length>=2).sort((a,b)=>{let ia=preferred.indexOf(a),ib=preferred.indexOf(b);if(ia<0)ia=99;if(ib<0)ib=99;return ia-ib||a.localeCompare(b)});
+ const names=Object.keys(groups).filter(g=>groups[g].length>=2).sort((a,b)=>{
+   if(a==="ICED"&&b!=="ICED") return -1;
+   if(b==="ICED"&&a!=="ICED") return 1;
+   return groups[b].length-groups[a].length || groupLabel(a).localeCompare(groupLabel(b));
+ });
  if(names.length){const h=document.createElement("div");h.className="group-title";h.textContent="OTHER RECIPES";box.appendChild(h)}
  names.forEach(g=>{let card=document.createElement("div");card.className="group-card";card.innerHTML=`<div><div class="group-name">${esc(groupLabel(g))}</div><div class="group-count">${groups[g].length} recipes</div></div><div class="group-arrow">›</div>`;card.onclick=()=>{activeGroup=g;renderLibrary()};box.appendChild(card)});
  if(singles.length){singles.forEach(r=>box.appendChild(recipeCard(r)))}
@@ -291,13 +307,13 @@ function startRename(){
 }
 function openRecipe(id){
  current=recipes.find(r=>r.id===id);bodyPours=3;
- mode=current.defaultMode || (current.type==="iced" ? "water" : "coffee");
+ mode=current.defaultMode || ((current.type==="iced" || current.type==="icedRecipe") ? "water" : "coffee");
  $("library").classList.add("hidden");$("brew").classList.remove("hidden");
  $("brewName").textContent=current.name;$("brewMeta").textContent=current.brewer+" · Default 1:"+fmt(current.ratio);$("brewGrind").textContent="Grind: "+(current.grind||"Adjust to taste")+(current.temp?" · Water: "+current.temp:"");
  $("coffee").value=current.coffee;$("water").value=current.water;$("ratio").value=current.ratio;$("ratioLabel").textContent="1:"+(+current.ratio).toFixed(2);
  $("kasuyaControls").classList.toggle("hidden",current.type!=="kasuya");
- $("icedControls").classList.toggle("hidden",current.type!=="iced");
- if(current.type==="iced"){
+ $("icedControls").classList.toggle("hidden",!(current.type==="iced" || current.type==="icedRecipe"));
+ if(current.type==="iced" || current.type==="icedRecipe"){
    $("ice").value=current.ice;
    $("icePct").value=current.icePct;
    $("icePctLabel").textContent=(+current.icePct).toFixed(2)+"%";
@@ -321,7 +337,7 @@ function updateMode(){
 }
 function recalc(source){
  let ratio=+$("ratio").value||current.ratio;
- if(current.type==="iced"){
+ if(current.type==="iced" || current.type==="icedRecipe"){
    ratio=+$("ratio").value||current.ratio;
    $("ratioLabel").textContent="1:"+ratio.toFixed(2);
    let pct=(+$("icePct").value||34)/100;
@@ -352,7 +368,17 @@ function resetIcePct(){
 }
 function renderSteps(){
  let W=+$("water").value||0, html="";
- if(current.type==="iced"){
+ if(current.type==="icedRecipe"){
+   let ice=+$("ice").value||0, hot=Math.max(0,W-ice);
+   (current.icedSteps||[]).forEach(st=>{
+     if(st.kind==="ice") html+=step(st.t,ice,st.n,st.valve);
+     else if(st.kind==="action") html+=`<div class="step"><div class="time">${esc(st.t)}</div><div><div class="target">${esc(st.label||"Action")}</div><div class="note">${st.valve?valveBadge(st.valve):""}${esc(st.n||"")}</div></div></div>`;
+     else {
+       let target=st.hg!=null ? hot*(st.hg/((current.water||W)*(1-(current.icePct||0)/100))) : hot*(st.hf||0);
+       html+=step(st.t,target,st.n,st.valve);
+     }
+   });
+ } else if(current.type==="iced"){
    let ice=+$("ice").value||0, hot=Math.max(0,W-ice);
    html+=step("Prep",hot,"Hot water into brewer first · valve closed");
    html+=step("Then",+$("coffee").value||0,"Add ground coffee (g) and stir thoroughly");
@@ -365,7 +391,7 @@ function renderSteps(){
   vals.forEach((v,i)=>html+=step(i===0?"0:00":time45(i),v,i<2?(i===0?"Flavour pour 1":"Flavour pour 2"):"Body pour"));
  } else current.steps.forEach(s=>html+=step(s.t,s.g!=null?s.g:W*s.f,s.n,s.valve));
  if(current.footer) html+=`<div class="note" style="padding-top:12px">${esc(current.footer)}</div>`;
- if(current.youtube) html+=`<div class="source-note">Source: <a href="${esc(current.youtube)}" target="_blank" rel="noopener">YouTube ↗</a></div>`;
+ if(current.youtube){const isYT=/youtube\.com|youtu\.be/.test(current.youtube);html+=`<div class="source-note">Source: <a href="${esc(current.youtube)}" target="_blank" rel="noopener">${isYT?"YouTube":"Recipe source"} ↗</a></div>`;}
  $("steps").innerHTML=html;
  const checks=current.check||["No strict finish-time target specified; follow the recipe timings and use flow consistency as your guide."];
  $("brewCheck").innerHTML=checks.map((x,i)=>`<div class="brew-check-line">${i===0?'<strong>':' '}${esc(x)}${i===0?'</strong>':''}</div>`).join("");
